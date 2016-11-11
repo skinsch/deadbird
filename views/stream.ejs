@@ -1,0 +1,28 @@
+<html>
+<head>
+  <link rel="stylesheet" href="css/style.css">
+  <title>Deadbird</title>
+</head>
+<body>
+  <h1 class="deadbirdtitle"><img id='deadbirdLogo' src='img/deadbird.svg'>Deadbird</h1>
+  <div role="main" aria-labelledby="content-main-heading" class="content-main top-timeline-tweetbox" id="timeline">
+    <div class="stream-container conversations-enabled " data-max-position="796955872979251200" data-min-position="796868124477968384">
+    </div>
+    <div class="stream">
+      <ol class="stream-items js-navigable-stream" id="stream-items-id">
+      <% for (let i = 0; i < tweets.length; i++) { %>
+        <li class="js-stream-item stream-item stream-item" data-item-type="tweet">
+        <%-tweets[i].timeline%>
+        </li>
+      <% } %>
+      </ol>
+      <ol class="hidden-replies-container">
+        
+      </ol>
+    </div>
+  </div>
+  <script src="js/moment.min.js"></script>
+  <script src="js/jquery.js"></script>
+  <script src="js/general.js"></script>
+</body>
+</html>
