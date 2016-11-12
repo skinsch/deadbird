@@ -187,7 +187,11 @@ module.exports = {
       Handle.getTemplate(handle).then(template => {
         this.getTweetTxt(id).then(tweet => {
           $ = cheerio.load(template.template);
+          $('.PermalinkOverlay').css('display', 'block');
           $('.PermalinkOverlay-modal').prepend(tweet.tweet).html();
+          $('body').append("<script src='/js/jquery.js'></script>")
+          $('body').append("<script src='/js/moment.min.js'></script>")
+          $('body').append("<script src='/js/general.js'></script>")
           resolve($.html());
         });
       });
@@ -218,9 +222,9 @@ module.exports = {
                 }
               </style>`);
             $('#stream-items-id').append(htmlTweets).html();
-            $('body').append("<script src='js/jquery.js'></script>")
-            $('body').append("<script src='js/moment.min.js'></script>")
-            $('body').append("<script src='js/general.js'></script>")
+            $('body').append("<script src='/js/jquery.js'></script>")
+            $('body').append("<script src='/js/moment.min.js'></script>")
+            $('body').append("<script src='/js/general.js'></script>")
             resolve($.html());
           });
         });
