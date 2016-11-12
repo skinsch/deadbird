@@ -1,4 +1,5 @@
 $(() => {
+  let base = $('base').attr('href');
   updateDates();
   setInterval(updateDates, 1000);
 
@@ -6,7 +7,7 @@ $(() => {
     $('.tweet').click(function (event) {
       let id   = $(this).data('tweet-id');
       let user = $(this).data('screen-name');
-      window.location.href = `/${user}/status/${id}`;
+      window.location.href = `${base}${user}/status/${id}`;
     });
   }
 });

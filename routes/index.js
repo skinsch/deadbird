@@ -1,7 +1,8 @@
-const async   = require('async');
-const express = require('express');
-const cheerio = require('cheerio');
-const router  = express.Router();
+const async    = require('async');
+const express  = require('express');
+const cheerio  = require('cheerio');
+const router   = express.Router();
+const settings = require('../utils').settings;
 
 const Tweet  = require('../models/tweet');
 const Handle = require('../models/handle');
@@ -17,7 +18,7 @@ router.get('/', function(req, res, next) {
         cb();
       });
     }, () => {
-      res.render('stream', { tweets: tweetData });
+      res.render('stream', { basehref: settings.general.basehref, tweets: tweetData });
     });
   });
 });

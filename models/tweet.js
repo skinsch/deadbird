@@ -8,6 +8,7 @@ const async    = require('async');
 const zlib     = require('zlib');
 const Readable = require('stream').Readable;
 const andify   = require('../utils').andify;
+const settings = require('../utils').settings;
 const db       = require('./db').connection;
 
 const Handle = require('./handle');
@@ -189,6 +190,7 @@ module.exports = {
           $ = cheerio.load(template.template);
           $('.PermalinkOverlay').css('display', 'block');
           $('.PermalinkOverlay-modal').prepend(tweet.tweet).html();
+          $('head').append("<base href='" + settings.general.basehref + "'>")
           $('body').append("<script src='/js/jquery.js'></script>")
           $('body').append("<script src='/js/moment.min.js'></script>")
           $('body').append("<script src='/js/general.js'></script>")
@@ -222,6 +224,7 @@ module.exports = {
                 }
               </style>`);
             $('#stream-items-id').append(htmlTweets).html();
+            $('head').append("<base href='" + settings.general.basehref + "'>")
             $('body').append("<script src='/js/jquery.js'></script>")
             $('body').append("<script src='/js/moment.min.js'></script>")
             $('body').append("<script src='/js/general.js'></script>")
