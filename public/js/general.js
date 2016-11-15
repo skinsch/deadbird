@@ -5,8 +5,17 @@ $(() => {
 
   if (window.location.href.indexOf('/status/') === -1) {
     $('.tweet').click(function (event) {
-      let id   = $(this).data('tweet-id');
-      let user = $(this).data('screen-name');
+
+      let id, user;
+
+      // Retweet is a different url
+      if ($(this).data('retweet-id') !== undefined) {
+        id   = $(this).data('retweet-id');
+        user = $(this).data('retweeter');
+      } else {
+        id   = $(this).data('tweet-id');
+        user = $(this).data('screen-name');
+      }
       window.location.href = `${base}${user}/status/${id}`;
     });
   }
