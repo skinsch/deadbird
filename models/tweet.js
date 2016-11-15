@@ -163,13 +163,21 @@ module.exports = {
           let tweetStream = fs.createReadStream(`${__dirname}/../tweets/${tweet.tweetid}.gz`);
           let timelineStream = fs.createReadStream(`${__dirname}/../timelineTweets/${tweet.tweetid}.gz`);
 
-          tweetStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../tweets/${tweet.tweetid}`));
-          timelineStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../timelineTweets/${tweet.tweetid}`));
-          fs.unlink(`${__dirname}/../tweets/${tweet.tweetid}.gz`, () => {
-            fs.unlink(`${__dirname}/../timelineTweets/${tweet.tweetid}.gz`, () => {
-              resolve({err: err, result: result});
+          let tweetWrite = tweetStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../tweets/${tweet.tweetid}`));
+          let timelineWrite = timelineStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../timelineTweets/${tweet.tweetid}`));
+
+          // Make sure tweets are gunzipped before deletion
+          async.series([
+            cb => tweetWrite.on('finish', () => cb()),
+            cb => timelineWrite.on('finish', () => cb())
+          ], () => {
+            fs.unlink(`${__dirname}/../tweets/${tweet.tweetid}.gz`, () => {
+              fs.unlink(`${__dirname}/../timelineTweets/${tweet.tweetid}.gz`, () => {
+                resolve({err: err, result: result});
+              });
             });
           });
+
         });
       });
     });
