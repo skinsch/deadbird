@@ -9,7 +9,7 @@ const Handle = require('../models/handle');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  Tweet.getAllDeleted().then(tweets => {
+  Tweet.getAllDeleted((Number((req.query.page || 1))*25)-25).then(tweets => {
     let tweetData = [];
 
     async.eachLimit(tweets, 1, (tweet, cb) => {

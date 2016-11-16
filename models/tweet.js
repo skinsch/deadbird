@@ -87,9 +87,9 @@ module.exports = {
       });
     });
   },
-  getAllDeleted() {
+  getAllDeleted(start=0, limit=25) {
     return new Promise((resolve, reject) => {
-      db.query('SELECT t.id, t.date, t.deleteDate, t.content, t.handle, h.handle, t.tweetid, h.tweetAlbum, h.imgAlbum FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `deleteDate` IS NOT NULL ORDER BY `deleteDate` DESC', (err, data) => {
+      db.query('SELECT t.id, t.date, t.deleteDate, t.content, t.handle, h.handle, t.tweetid, h.tweetAlbum, h.imgAlbum FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `deleteDate` IS NOT NULL ORDER BY `deleteDate` DESC LIMIT ' + start + ', ' + limit, (err, data) => {
         err ? reject(err) : resolve(data);
       });
     });
@@ -167,10 +167,19 @@ module.exports = {
           let timelineWrite = timelineStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../timelineTweets/${tweet.tweetid}`));
 
           // Make sure tweets are gunzipped before deletion
-          async.series([
-            cb => tweetWrite.on('finish', () => cb()),
-            cb => timelineWrite.on('finish', () => cb())
-          ], () => {
+          async.parallel([
+            cb => {
+              let tweetWrite = tweetStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../tweets/${tweet.tweetid}`));
+              tweetWrite.on('finish', () => {
+                cb();
+              });
+            },
+            cb => {
+              let timelineWrite = timelineStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../timelineTweets/${tweet.tweetid}`));
+              timelineWrite.on('finish', () => {
+                cb();
+              });
+          }], () => {
             fs.unlink(`${__dirname}/../tweets/${tweet.tweetid}.gz`, () => {
               fs.unlink(`${__dirname}/../timelineTweets/${tweet.tweetid}.gz`, () => {
                 resolve({err: err, result: result});
