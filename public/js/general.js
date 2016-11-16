@@ -19,6 +19,12 @@ $(() => {
       window.location.href = `${base}${user}/status/${id}`;
     });
   }
+
+  $('.PermalinkOverlay').click(() => {
+    let base = $('base').attr('href');
+    let baseless = window.location.href.slice(base.length);
+    window.location.href = `${base}${baseless.slice(0, baseless.indexOf('/'))}`;
+  });
 });
 
 function updateDates() {

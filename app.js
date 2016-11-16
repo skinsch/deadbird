@@ -8,7 +8,6 @@ const compress     = require('compression');
 const debug        = require('debug')('Deadbird:server');
 const http         = require('http');
 
-
 const settings = require('./utils').settings;
 
 const index = require('./routes/index');

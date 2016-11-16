@@ -1,12 +1,13 @@
-const fs      = require('fs');
-const cheerio = require('cheerio');
-const request = require('request');
-const utils   = require('./utils');
-const db      = require('./models/db');
-const Tweet   = require('./models/tweet');
-const Handle  = require('./models/handle');
-const Promise = require('bluebird');
-const async   = require('async');
+const fs       = require('fs');
+const cheerio  = require('cheerio');
+const request  = require('request');
+const utils    = require('./utils');
+const db       = require('./models/db');
+const Tweet    = require('./models/tweet');
+const Handle   = require('./models/handle');
+const Promise  = require('bluebird');
+const async    = require('async');
+const settings = require('./utils').settings;
 
 const charm = require('charm')();
 charm.pipe(process.stdout);
@@ -44,6 +45,13 @@ function getTemplate(handle, cb) {
     });
     $('.Grid-cell .u-lg-size2of3').empty();
     $('.Grid-cell .u-size1of3').remove();
+    $('link[rel="preload"]').remove();
+    $('script[async]').remove();
+    $('#init-data').remove();
+    $('#global-nav-moments').remove();
+    $('.pull-right').remove();
+    $('.ProfileNav-item--userActions').remove();
+    $('a[data-nav="home"]').attr('href', settings.general.basehref);
     $('.Grid-cell .u-lg-size2of3').append(`
 <div id="timeline" class="ProfileTimeline ">
   <div class="stream">
