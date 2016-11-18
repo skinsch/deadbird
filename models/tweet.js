@@ -133,7 +133,7 @@ module.exports = {
   },
   getDeletedTweets(handle) {
     return new Promise((resolve, reject) => {
-      db.query('SELECT t.*, h.id, h.handle from `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE ' + andify({deleteDate: "!null", ['h.handle']: handle}).query, (err, data) => {
+      db.query('SELECT t.*, h.id, h.handle from `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE ' + andify({deleteDate: "!null", ['h.handle']: handle}).query + ' ORDER BY `deletedate` DESC', (err, data) => {
         if (err) reject(err);
         else if (data.length === 0) resolve(null);
         else resolve(data);
@@ -179,6 +179,7 @@ module.exports = {
               timelineWrite.on('finish', () => {
                 cb();
               });
+            
           }], () => {
             fs.unlink(`${__dirname}/../data/tweets/${tweet.tweetid}.gz`, () => {
               fs.unlink(`${__dirname}/../data/timelineTweets/${tweet.tweetid}.gz`, () => {

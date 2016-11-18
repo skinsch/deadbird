@@ -24,15 +24,13 @@ async.series([
 
 function main() {
 
-  let things = [];
-  let tots = 0;
+  let completed = 0;
   let totalNewTweets = 0;
 
   async.eachLimit(handles, 15, (user, cb) => {
     let newTweets;
 
-    getTweets(user, (tweets) => {
-      things = things.concat(tweets);
+    getTweets(user, tweets => {
 
       newTweets = 0;
       async.eachLimit(tweets, 10, (thing, innercb) => {
@@ -44,8 +42,8 @@ function main() {
       }, () => {
         charm.left(255);
         charm.erase('line');
-        charm.write(`${++tots} / ${handles.length} | ${user.handle} | ${newTweets} new tweets added`)
-        if (tots === handles.length) {
+        charm.write(`${++completed} / ${handles.length} | ${user.handle} | ${newTweets} new tweets added`)
+        if (completed === handles.length) {
           if (newTweets === 0) charm.erase('line');
           else console.log('\n');
         }
@@ -94,6 +92,7 @@ function getTweets(user, cb) {
     data.tweetid = data.retweet ? attribs['data-retweet-id'] : attribs['data-tweet-id'];
     data.timelineTweet = $("div.js-profile-popup-actionable[data-item-id='" + $($('.stream-items li p.tweet-text')[info.index]).parent().parent().parent().data('item-id') + "']").parent().html();
     //data.content = tweet.children[0].data;
+
 
     if (data.retweet) {
       data.content = $("div[data-retweet-id=" + data.tweetid + "] .js-tweet-text-container p").text();

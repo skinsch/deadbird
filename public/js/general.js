@@ -25,6 +25,11 @@ $(() => {
     let baseless = window.location.href.slice(base.length);
     window.location.href = `${base}${baseless.slice(0, baseless.indexOf('/'))}`;
   });
+
+  $('.js-adaptive-photo img').on('click', function(e) {
+    window.location.href = `${base}${$(this).attr('src')}`;
+    return false;
+  });
 });
 
 function updateDates() {
