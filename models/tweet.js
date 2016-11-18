@@ -209,9 +209,9 @@ module.exports = {
           $('.PermalinkOverlay').css('display', 'block');
           $('.PermalinkOverlay-modal').prepend(tweet.tweet).html();
           $('head').append("<base href='" + settings.general.basehref + "'>")
-          $('body').append("<script src='/js/jquery.js'></script>")
-          $('body').append("<script src='/js/moment.min.js'></script>")
-          $('body').append("<script src='/js/general.js'></script>")
+          $('body').append("<script src='js/jquery.js'></script>")
+          $('body').append("<script src='js/moment.min.js'></script>")
+          $('body').append("<script src='js/general.js'></script>")
           resolve($.html());
         });
       });
@@ -243,9 +243,9 @@ module.exports = {
               </style>`);
             $('#stream-items-id').append(htmlTweets).html();
             $('head').append("<base href='" + settings.general.basehref + "'>")
-            $('body').append("<script src='/js/jquery.js'></script>")
-            $('body').append("<script src='/js/moment.min.js'></script>")
-            $('body').append("<script src='/js/general.js'></script>")
+            $('body').append("<script src='js/jquery.js'></script>")
+            $('body').append("<script src='js/moment.min.js'></script>")
+            $('body').append("<script src='js/general.js'></script>")
             resolve($.html());
           });
         });
