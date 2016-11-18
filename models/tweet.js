@@ -38,13 +38,13 @@ module.exports = {
               mainTweet.push($('.PermalinkOverlay-modal').html());
               mainTweet.push(null);
 
-              mainTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../tweets/${data.tweetid}.gz`));
+              mainTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/tweets/${data.tweetid}.gz`));
 
               let timelineTweet = new Readable;
               timelineTweet.push(timelineTweetHTML);
               timelineTweet.push(null);
 
-              timelineTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../timelineTweets/${data.tweetid}.gz`));
+              timelineTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/timelineTweets/${data.tweetid}.gz`));
               cb();
             });
           },
@@ -160,28 +160,28 @@ module.exports = {
     return new Promise((resolve, reject) => {
       this.getCond({id}).then(tweet => {
         db.query('UPDATE `tweets` SET ? WHERE ?', [{deleteDate: moment().format("YYYY-MM-DD HH:mm:ss")}, {id}], (err, result) => {
-          let tweetStream = fs.createReadStream(`${__dirname}/../tweets/${tweet.tweetid}.gz`);
-          let timelineStream = fs.createReadStream(`${__dirname}/../timelineTweets/${tweet.tweetid}.gz`);
+          let tweetStream = fs.createReadStream(`${__dirname}/../data/tweets/${tweet.tweetid}.gz`);
+          let timelineStream = fs.createReadStream(`${__dirname}/../data/timelineTweets/${tweet.tweetid}.gz`);
 
-          let tweetWrite = tweetStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../tweets/${tweet.tweetid}`));
-          let timelineWrite = timelineStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../timelineTweets/${tweet.tweetid}`));
+          let tweetWrite = tweetStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../data/tweets/${tweet.tweetid}`));
+          let timelineWrite = timelineStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../data/timelineTweets/${tweet.tweetid}`));
 
           // Make sure tweets are gunzipped before deletion
           async.parallel([
             cb => {
-              let tweetWrite = tweetStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../tweets/${tweet.tweetid}`));
+              let tweetWrite = tweetStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../data/tweets/${tweet.tweetid}`));
               tweetWrite.on('finish', () => {
                 cb();
               });
             },
             cb => {
-              let timelineWrite = timelineStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../timelineTweets/${tweet.tweetid}`));
+              let timelineWrite = timelineStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../data/timelineTweets/${tweet.tweetid}`));
               timelineWrite.on('finish', () => {
                 cb();
               });
           }], () => {
-            fs.unlink(`${__dirname}/../tweets/${tweet.tweetid}.gz`, () => {
-              fs.unlink(`${__dirname}/../timelineTweets/${tweet.tweetid}.gz`, () => {
+            fs.unlink(`${__dirname}/../data/tweets/${tweet.tweetid}.gz`, () => {
+              fs.unlink(`${__dirname}/../data/timelineTweets/${tweet.tweetid}.gz`, () => {
                 resolve({err: err, result: result});
               });
             });
@@ -193,8 +193,8 @@ module.exports = {
   },
   getTweetTxt(id) {
     return new Promise((resolve, reject) => {
-      fs.readFile(`${__dirname}/../tweets/${id}`, 'utf8', (err, tweet) => {
-        fs.readFile(`${__dirname}/../timelineTweets/${id}`, 'utf8', (err, timeline) => {
+      fs.readFile(`${__dirname}/../data/tweets/${id}`, 'utf8', (err, tweet) => {
+        fs.readFile(`${__dirname}/../data/timelineTweets/${id}`, 'utf8', (err, timeline) => {
           resolve({tweet, timeline});
         });
       });

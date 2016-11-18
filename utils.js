@@ -1,8 +1,6 @@
-const fs       = require('fs');
 const moment   = require('moment');
 const _        = require('lodash');
 const request  = require('request');
-const cheerio  = require('cheerio');
 const settings = require('./settings.json');
 
 module.exports = {

@@ -1,6 +1,3 @@
-const cheerio = require('cheerio');
-const fs      = require('fs');
-const request = require('request');
 const async   = require('async');
 const moment  = require('moment');
 const utils   = require('./utils');

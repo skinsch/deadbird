@@ -1,0 +1,5 @@
+#!/bin/bash
+
+rm templates/*
+rm timelineTweets/*
+rm tweets/*

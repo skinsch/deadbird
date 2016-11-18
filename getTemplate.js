@@ -3,9 +3,7 @@ const cheerio  = require('cheerio');
 const request  = require('request');
 const utils    = require('./utils');
 const db       = require('./models/db');
-const Tweet    = require('./models/tweet');
 const Handle   = require('./models/handle');
-const Promise  = require('bluebird');
 const async    = require('async');
 const settings = require('./utils').settings;
 
@@ -60,7 +58,7 @@ function getTemplate(handle, cb) {
   </div>
 </div>`);
 
-    fs.writeFile(`./templates/${handle.id}`, $.html(), () => {
+    fs.writeFile(`./data/templates/${handle.id}`, $.html(), () => {
       Handle.update({template: 1}, handle.id).then(() => {
         cb();
       });

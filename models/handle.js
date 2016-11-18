@@ -79,7 +79,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       this.getCond({handle}).then(handle => {
         if (handle === null) return resolve({});
-        fs.readFile(`./templates/${handle.id}`, 'utf8', (err, template) => {
+        fs.readFile(`./data/templates/${handle.id}`, 'utf8', (err, template) => {
           resolve({template});
         });
       });

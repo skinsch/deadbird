@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
 yarn.lock
-tweets/*
-timelineTweets/*
-templates/*
+data/tweets/*
+data/timelineTweets/*
+data/templates/*
+npm-debug.log

@@ -23,20 +23,18 @@ module.exports.init = function(cb) {
     }
   });
 
-  pool.getConnection((err, connection) => {
-    connection.query('SELECT 1', [], () => {
-      connection.release();
-    });
-  });
-
   // Keep connection alive
-  setInterval(() => {
+  keepAlive();
+  setInterval(keepAlive, db.keepAliveInterval);
+
+  function keepAlive() {
     pool.getConnection((err, connection) => {
+      if (err) return;
       connection.query('SELECT 1', [], () => {
         connection.release();
       });
     });
-  }, db.keepAliveInterval);
+  }
 };
 
 module.exports.connection = {
