@@ -75,28 +75,28 @@ module.exports = {
   },
   getAll() {
     return new Promise((resolve, reject) => {
-      db.query('SELECT t.id, t.date, t.content, t.handle, h.handle, t.tweetid, h.tweetAlbum, h.imgAlbum FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) ORDER BY `date` DESC', (err, data) => {
+      db.query('SELECT t.id, t.date, t.content, t.handle, h.handle, t.tweetid FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) ORDER BY `date` DESC', (err, data) => {
         err ? reject(err) : resolve(data);
       });
     });
   },
   getAllAvailable() {
     return new Promise((resolve, reject) => {
-      db.query('SELECT t.id, t.date, t.content, t.handle, h.handle, t.tweetid, h.tweetAlbum, h.imgAlbum FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `deleteDate` IS NULL ORDER BY `date` DESC', (err, data) => {
+      db.query('SELECT t.id, t.date, t.content, t.handle, h.handle, t.tweetid FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `deleteDate` IS NULL ORDER BY `date` DESC', (err, data) => {
         err ? reject(err) : resolve(data);
       });
     });
   },
   getAllDeleted(start=0, limit=25) {
     return new Promise((resolve, reject) => {
-      db.query('SELECT t.id, t.date, t.deleteDate, t.content, t.handle, h.handle, t.tweetid, h.tweetAlbum, h.imgAlbum FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `deleteDate` IS NOT NULL ORDER BY `deleteDate` DESC LIMIT ' + start + ', ' + limit, (err, data) => {
+      db.query('SELECT t.id, t.date, t.deleteDate, t.content, t.handle, h.handle, t.tweetid FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `deleteDate` IS NOT NULL ORDER BY `deleteDate` DESC LIMIT ' + start + ', ' + limit, (err, data) => {
         err ? reject(err) : resolve(data);
       });
     });
   },
   getMissingScreenshot() {
     return new Promise((resolve, reject) => {
-      db.query('SELECT t.id, t.handle, h.handle, t.tweetid, h.tweetAlbum, h.imgAlbum FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `screenshot` IS NULL ORDER BY `date` DESC', (err, data) => {
+      db.query('SELECT t.id, t.handle, h.handle, t.tweetid FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `screenshot` IS NULL ORDER BY `date` DESC', (err, data) => {
         err ? reject(err) : resolve(data);
       });
     });

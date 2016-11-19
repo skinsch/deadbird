@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Nov 11, 2016 at 10:42 PM
+-- Generation Time: Nov 19, 2016 at 12:43 AM
 -- Server version: 5.7.15
 -- PHP Version: 5.6.25
 
@@ -29,10 +29,6 @@ SET time_zone = "+00:00";
 CREATE TABLE `handles` (
   `id` int(11) NOT NULL,
   `handle` varchar(32) NOT NULL,
-  `tweetAlbum` varchar(32) DEFAULT NULL,
-  `tweetAlbumHash` varchar(32) DEFAULT NULL,
-  `imgAlbum` varchar(32) DEFAULT NULL,
-  `imgAlbumHash` varchar(32) DEFAULT NULL,
   `template` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
@@ -40,119 +36,107 @@ CREATE TABLE `handles` (
 -- Dumping data for table `handles`
 --
 
-INSERT INTO `handles` (`id`, `handle`, `tweetAlbum`, `tweetAlbumHash`, `imgAlbum`, `imgAlbumHash`, `template`) VALUES
-(1, 'katyperry', NULL, NULL, NULL, NULL, 0),
-(2, 'justinbieber', NULL, NULL, NULL, NULL, 0),
-(3, 'taylorswift13', NULL, NULL, NULL, NULL, 0),
-(4, 'barackobama', NULL, NULL, NULL, NULL, 0),
-(5, 'rihanna', NULL, NULL, NULL, NULL, 0),
-(6, 'youtube', NULL, NULL, NULL, NULL, 0),
-(7, 'ladygaga', NULL, NULL, NULL, NULL, 0),
-(8, 'theellenshow', NULL, NULL, NULL, NULL, 0),
-(9, 'twitter', NULL, NULL, NULL, NULL, 0),
-(10, 'jtimberlake', NULL, NULL, NULL, NULL, 0),
-(11, 'kimkardashian', NULL, NULL, NULL, NULL, 0),
-(12, 'britneyspears', NULL, NULL, NULL, NULL, 0),
-(13, 'cristiano', NULL, NULL, NULL, NULL, 0),
-(14, 'selenagomez', NULL, NULL, NULL, NULL, 0),
-(15, 'cnnbrk', NULL, NULL, NULL, NULL, 0),
-(16, 'jimmyfallon', NULL, NULL, NULL, NULL, 0),
-(17, 'arianagrande', NULL, NULL, NULL, NULL, 0),
-(18, 'shakira', NULL, NULL, NULL, NULL, 0),
-(19, 'instagram', NULL, NULL, NULL, NULL, 0),
-(20, 'ddlovato', NULL, NULL, NULL, NULL, 0),
-(21, 'jlo', NULL, NULL, NULL, NULL, 0),
-(22, 'oprah', NULL, NULL, NULL, NULL, 0),
-(23, 'drake', NULL, NULL, NULL, NULL, 0),
-(24, 'kingjames', NULL, NULL, NULL, NULL, 0),
-(25, 'billgates', NULL, NULL, NULL, NULL, 0),
-(26, 'nytimes', NULL, NULL, NULL, NULL, 0),
-(27, 'onedirection', NULL, NULL, NULL, NULL, 0),
-(28, 'kevinhart4real', NULL, NULL, NULL, NULL, 0),
-(29, 'mileycyrus', NULL, NULL, NULL, NULL, 0),
-(30, 'sportscenter', NULL, NULL, NULL, NULL, 0),
-(31, 'espn', NULL, NULL, NULL, NULL, 0),
-(32, 'harry_styles', NULL, NULL, NULL, NULL, 0),
-(33, 'cnn', NULL, NULL, NULL, NULL, 0),
-(34, 'pink', NULL, NULL, NULL, NULL, 0),
-(35, 'liltunechi', NULL, NULL, NULL, NULL, 0),
-(36, 'wizkhalifa', NULL, NULL, NULL, NULL, 0),
-(37, 'niallofficial', NULL, NULL, NULL, NULL, 0),
-(38, 'adele', NULL, NULL, NULL, NULL, 0),
-(39, 'brunomars', NULL, NULL, NULL, NULL, 0),
-(40, 'bbcbreaking', NULL, NULL, NULL, NULL, 0),
-(41, 'kanyewest', NULL, NULL, NULL, NULL, 0),
-(42, 'kaka', NULL, NULL, NULL, NULL, 0),
-(43, 'neymarjr', NULL, NULL, NULL, NULL, 0),
-(44, 'actuallynph', NULL, NULL, NULL, NULL, 0),
-(45, 'danieltosh', NULL, NULL, NULL, NULL, 0),
-(46, 'aliciakeys', NULL, NULL, NULL, NULL, 0),
-(47, 'narendramodi', NULL, NULL, NULL, NULL, 0),
-(48, 'nba', NULL, NULL, NULL, NULL, 0),
-(49, 'liampayne', NULL, NULL, NULL, NULL, 0),
-(50, 'louis_tomlinson', NULL, NULL, NULL, NULL, 0),
-(51, 'srbachchan', NULL, NULL, NULL, NULL, 0),
-(52, 'emmawatson', NULL, NULL, NULL, NULL, 0),
-(53, 'pitbull', NULL, NULL, NULL, NULL, 0),
-(54, 'khloekardashian', NULL, NULL, NULL, NULL, 0),
-(55, 'conanobrien', NULL, NULL, NULL, NULL, 0),
-(56, 'iamsrk', NULL, NULL, NULL, NULL, 0),
-(57, 'kourtneykardash', NULL, NULL, NULL, NULL, 0),
-(58, 'realmadrid', NULL, NULL, NULL, NULL, 0),
-(59, 'eminem', NULL, NULL, NULL, NULL, 0),
-(60, 'davidguetta', NULL, NULL, NULL, NULL, 0),
-(61, 'nickiminaj', NULL, NULL, NULL, NULL, 0),
-(62, 'nfl', NULL, NULL, NULL, NULL, 0),
-(63, 'avrillavigne', NULL, NULL, NULL, NULL, 0),
-(64, 'zaynmalik', NULL, NULL, NULL, NULL, 0),
-(65, 'kendalljenner', NULL, NULL, NULL, NULL, 0),
-(66, 'beingsalmankhan', NULL, NULL, NULL, NULL, 0),
-(67, 'nasa', NULL, NULL, NULL, NULL, 0),
-(68, 'fcbarcelona', NULL, NULL, NULL, NULL, 0),
-(69, 'aamir_khan', NULL, NULL, NULL, NULL, 0),
-(70, 'kyliejenner', NULL, NULL, NULL, NULL, 0),
-(71, 'blakeshelton', NULL, NULL, NULL, NULL, 0),
-(72, 'chrisbrown', NULL, NULL, NULL, NULL, 0),
-(73, 'coldplay', NULL, NULL, NULL, NULL, 0),
-(74, 'aplusk', NULL, NULL, NULL, NULL, 0),
-(75, 'vine', NULL, NULL, NULL, NULL, 0),
-(76, 'theeconomist', NULL, NULL, NULL, NULL, 0),
-(77, 'mariahcarey', NULL, NULL, NULL, NULL, 0),
-(78, 'edsheeran', NULL, NULL, NULL, NULL, 0),
-(79, 'leodicaprio', NULL, NULL, NULL, NULL, 0),
-(80, 'bbcworld', NULL, NULL, NULL, NULL, 0),
-(81, 'deepikapadukone', NULL, NULL, NULL, NULL, 0),
-(82, 'google', NULL, NULL, NULL, NULL, 0),
-(83, 'xtina', NULL, NULL, NULL, NULL, 0),
-(84, 'agnezmo', NULL, NULL, NULL, NULL, 0),
-(85, 'mohamadalarefe', NULL, NULL, NULL, NULL, 0),
-(86, 'shugairi', NULL, NULL, NULL, NULL, 0),
-(87, 'ricky_martin', NULL, NULL, NULL, NULL, 0),
-(88, 'twitterespanol', NULL, NULL, NULL, NULL, 0),
-(89, 'priyankachopra', NULL, NULL, NULL, NULL, 0),
-(90, 'jimcarrey', NULL, NULL, NULL, NULL, 0),
-(91, 'reuters', NULL, NULL, NULL, NULL, 0),
-(92, 'ihrithik', NULL, NULL, NULL, NULL, 0),
-(93, 'kdtrey5', NULL, NULL, NULL, NULL, 0),
-(94, 'ivetesangalo', NULL, NULL, NULL, NULL, 0),
-(95, 'ryanseacrest', NULL, NULL, NULL, NULL, 0),
-(96, 'alejandrosanz', NULL, NULL, NULL, NULL, 0),
-(97, 'snoopdogg', NULL, NULL, NULL, NULL, 0),
-(98, 'akshaykumar', NULL, NULL, NULL, NULL, 0),
-(99, 'twittersports', NULL, NULL, NULL, NULL, 0),
-(100, 'beyonce', NULL, NULL, NULL, NULL, 0);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `image`
---
-
-CREATE TABLE `image` (
-  `id` int(11) NOT NULL,
-  `handle` int(11) NOT NULL,
-  `type` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+INSERT INTO `handles` (`id`, `handle`, `template`) VALUES
+(1, 'katyperry', 0),
+(2, 'justinbieber', 0),
+(3, 'taylorswift13', 0),
+(4, 'barackobama', 0),
+(5, 'rihanna', 0),
+(6, 'youtube', 0),
+(7, 'ladygaga', 0),
+(8, 'theellenshow', 0),
+(9, 'twitter', 0),
+(10, 'jtimberlake', 0),
+(11, 'kimkardashian', 0),
+(12, 'britneyspears', 0),
+(13, 'cristiano', 0),
+(14, 'selenagomez', 0),
+(15, 'cnnbrk', 0),
+(16, 'jimmyfallon', 0),
+(17, 'arianagrande', 0),
+(18, 'shakira', 0),
+(19, 'instagram', 0),
+(20, 'ddlovato', 0),
+(21, 'jlo', 0),
+(22, 'oprah', 0),
+(23, 'drake', 0),
+(24, 'kingjames', 0),
+(25, 'billgates', 0),
+(26, 'nytimes', 0),
+(27, 'onedirection', 0),
+(28, 'kevinhart4real', 0),
+(29, 'mileycyrus', 0),
+(30, 'sportscenter', 0),
+(31, 'espn', 0),
+(32, 'harry_styles', 0),
+(33, 'cnn', 0),
+(34, 'pink', 0),
+(35, 'liltunechi', 0),
+(36, 'wizkhalifa', 0),
+(37, 'niallofficial', 0),
+(38, 'adele', 0),
+(39, 'brunomars', 0),
+(40, 'bbcbreaking', 0),
+(41, 'kanyewest', 0),
+(42, 'kaka', 0),
+(43, 'neymarjr', 0),
+(44, 'actuallynph', 0),
+(45, 'danieltosh', 0),
+(46, 'aliciakeys', 0),
+(47, 'narendramodi', 0),
+(48, 'nba', 0),
+(49, 'liampayne', 0),
+(50, 'louis_tomlinson', 0),
+(51, 'srbachchan', 0),
+(52, 'emmawatson', 0),
+(53, 'pitbull', 0),
+(54, 'khloekardashian', 0),
+(55, 'conanobrien', 0),
+(56, 'iamsrk', 0),
+(57, 'kourtneykardash', 0),
+(58, 'realmadrid', 0),
+(59, 'eminem', 0),
+(60, 'davidguetta', 0),
+(61, 'nickiminaj', 0),
+(62, 'nfl', 0),
+(63, 'avrillavigne', 0),
+(64, 'zaynmalik', 0),
+(65, 'kendalljenner', 0),
+(66, 'beingsalmankhan', 0),
+(67, 'nasa', 0),
+(68, 'fcbarcelona', 0),
+(69, 'aamir_khan', 0),
+(70, 'kyliejenner', 0),
+(71, 'blakeshelton', 0),
+(72, 'chrisbrown', 0),
+(73, 'coldplay', 0),
+(74, 'aplusk', 0),
+(75, 'vine', 0),
+(76, 'theeconomist', 0),
+(77, 'mariahcarey', 0),
+(78, 'edsheeran', 0),
+(79, 'leodicaprio', 0),
+(80, 'bbcworld', 0),
+(81, 'deepikapadukone', 0),
+(82, 'google', 0),
+(83, 'xtina', 0),
+(84, 'agnezmo', 0),
+(85, 'mohamadalarefe', 0),
+(86, 'shugairi', 0),
+(87, 'ricky_martin', 0),
+(88, 'twitterespanol', 0),
+(89, 'priyankachopra', 0),
+(90, 'jimcarrey', 0),
+(91, 'reuters', 0),
+(92, 'ihrithik', 0),
+(93, 'kdtrey5', 0),
+(94, 'ivetesangalo', 0),
+(95, 'ryanseacrest', 0),
+(96, 'alejandrosanz', 0),
+(97, 'snoopdogg', 0),
+(98, 'akshaykumar', 0),
+(99, 'twittersports', 0),
+(100, 'beyonce', 0);
 
 -- --------------------------------------------------------
 
@@ -168,7 +152,6 @@ CREATE TABLE `tweets` (
   `fetchDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleteDate` timestamp NULL DEFAULT NULL,
   `content` text COLLATE utf8_unicode_ci,
-  `media` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `tweetSaved` int(11) NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -182,12 +165,6 @@ CREATE TABLE `tweets` (
 ALTER TABLE `handles`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `handle` (`handle`);
-
---
--- Indexes for table `image`
---
-ALTER TABLE `image`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `tweets`
@@ -205,11 +182,6 @@ ALTER TABLE `tweets`
 --
 ALTER TABLE `handles`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
---
--- AUTO_INCREMENT for table `image`
---
-ALTER TABLE `image`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT for table `tweets`
 --
