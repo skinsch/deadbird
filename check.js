@@ -50,7 +50,7 @@ q.drain = () => {
 
 
 db.init(() => {
-  Tweet.getAllAvailable().then(tweets => {
+  Tweet.getAllAvailable((process.argv[2] || 7)).then(tweets => {
     startTotal = tweets.length;
     q.push(tweets);
   });

@@ -80,9 +80,9 @@ module.exports = {
       });
     });
   },
-  getAllAvailable() {
+  getAllAvailable(days=7) {
     return new Promise((resolve, reject) => {
-      db.query('SELECT t.id, t.date, t.content, t.handle, h.handle, t.tweetid FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `deleteDate` IS NULL ORDER BY `date` DESC', (err, data) => {
+      db.query('SELECT t.id, t.date, t.content, t.handle, h.handle, t.tweetid FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `deleteDate` IS NULL AND `date` > DATE_SUB(curdate(), INTERVAL ' + days + ' DAY) ORDER BY `date` DESC', (err, data) => {
         err ? reject(err) : resolve(data);
       });
     });
