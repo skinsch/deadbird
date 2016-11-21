@@ -31,12 +31,33 @@ module.exports = {
   settings,
   tweetExists(handle, id, cb) {
     try {
-      request(`https://twitter.com/${handle}/status/${id}`, (err, response, body) => {
+      request.head(`https://twitter.com/${handle}/status/${id}`, {
+        timeout: settings.general.timeout
+      }, (err, response) => {
         // If error reaching page, just assume it exists
-        if (err || !body) return cb(true);
+        if (err) return cb("fail");
 
         // If body says page doesn't exist (and it isn't because Twitter errored out) and the status code isn't 200
-        else if (body.indexOf('Sorry, that page doesn’t exist!') !== -1 && (response && response.statusCode !== 200)) {
+        else if (response && response.statusCode !== 200) {
+          cb(false);
+        } else {
+          cb(true);
+        }
+      });
+    } catch (e) {
+      cb(true);
+    }
+  },
+  tweetExistsB(handle, id, timeout, cb) {
+    try {
+      request.head(`https://twitter.com/${handle}/status/${id}`, {
+        timeout: Number(timeout)
+      }, (err, response) => {
+        // If error reaching page, just assume it exists
+        if (err) return cb("fail");
+
+        // If body says page doesn't exist (and it isn't because Twitter errored out) and the status code isn't 200
+        else if (response && response.statusCode !== 200) {
           cb(false);
         } else {
           cb(true);

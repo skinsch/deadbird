@@ -6,9 +6,9 @@ const charm = require('charm')();
 charm.pipe(process.stdout);
 charm.cursor(false);
 
-const db      = require('./models/db');
-const handle  = require('./models/handle');
-const tweet   = require('./models/tweet');
+const db     = require('./models/db');
+const handle = require('./models/handle');
+const tweet  = require('./models/tweet');
 
 let handles;
 
