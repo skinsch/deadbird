@@ -42,7 +42,7 @@ function speedTest(outcb) {
     () => cont,
     cb => {
       benchmark(speed, timeout, fails => {
-        console.log(`${(fails/2000)*100}% failure rate for ${speed} / ${timeout}`);
+        console.log(`${(fails/size)*100}% failure rate for ${speed} / ${timeout}`);
         let movingAvg = Math.abs(avg(averages.slice(-3)) - avg(averages.slice(-4, -1)));
         if (fails <= threshold && (movingAvg > 5 || averages.length < 3)) {
 
