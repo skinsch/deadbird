@@ -10656,3 +10656,41 @@ textarea:focus::placeholder {
     margin-bottom: 10px;
     margin-top: -20px;
 }
+
+#deadbirdNav {
+    display: block;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#deadbirdNav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+#deadbirdNav li {
+    display: inline;
+}
+
+#deadbirdNav li:first-child:before {
+    content: '';
+}
+
+#deadbirdNav li:before {
+    content: ' | ';
+}
+
+#deadbirdSearch {
+    text-align: center;
+}
+
+#deadbirdPagination {
+    display: block;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+#deadbirdStream {
+    margin-bottom: 50px;
+}

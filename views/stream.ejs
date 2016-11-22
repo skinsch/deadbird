@@ -7,10 +7,12 @@
 </head>
 <body>
   <h1 class="deadbirdtitle"><img id='deadbirdLogo' src='img/deadbird.svg'>Deadbird</h1>
+  <% include navbar %>
+  <% include pagination %>
   <div role="main" aria-labelledby="content-main-heading" class="content-main top-timeline-tweetbox" id="timeline">
     <div class="stream-container conversations-enabled " data-max-position="796955872979251200" data-min-position="796868124477968384">
     </div>
-    <div class="stream">
+    <div class="stream" id="deadbirdStream">
       <ol class="stream-items js-navigable-stream" id="stream-items-id">
       <% for (let i = 0; i < tweets.length; i++) { %>
         <li class="js-stream-item stream-item stream-item" data-item-type="tweet">

@@ -7,9 +7,21 @@ const settings = require('../utils').settings;
 const Tweet  = require('../models/tweet');
 const Handle = require('../models/handle');
 
+let originalUrl;
+router.all('*', (req, res, next) => {
+  originalUrl = req.app.get('originalUrl');
+  next();
+});
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  Tweet.getAllDeleted((Number((req.query.page || 1))*25)-25).then(tweets => {
+  let page = Number((req.query.page || 1));
+  if (page < 1) page = 1;
+
+  Tweet.getAllDeleted((page*25)-25).then(data => {
+    let tweets = data.tweets;
+    let totalTweets = data.total;
+
     let tweetData = [];
 
     async.eachLimit(tweets, 1, (tweet, cb) => {
@@ -18,7 +30,7 @@ router.get('/', function(req, res, next) {
         cb();
       });
     }, () => {
-      res.render('stream', { basehref: settings.general.basehref, tweets: tweetData });
+      res.render('stream', { basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets });
     });
   });
 });

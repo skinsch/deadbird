@@ -1,0 +1,23 @@
+<%
+let query = parseQuery(originalUrl);
+let page = Number((query.page || 1));
+let totalPages = Math.ceil(totalTweets/25);
+if (page < 1) page = 1;
+%>
+
+<div id="deadbirdPagination">
+  <div id="deadbirdPaginationControl"><a href="?page=1"><<</a> <a href="?page=<%=page === 1 ? 1 : page-1%>"><</a> Page <%=page%> of <%=totalPages%> <a href="?page=<%=page === totalPages ? totalPages : page+1%>">></a> <a href="?page=<%=totalPages%>">>></a> </div>
+  <div id="deadbirdPaginationStat"> <%=totalTweets%> deleted tweets total</div>
+</div>
+
+<%
+function parseQuery(qstr) {
+    var query = {};
+    var a = qstr.substr(2).split('&');
+    for (var i = 0; i < a.length; i++) {
+        var b = a[i].split('=');
+        query[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
+    }
+    return query;
+}
+%>

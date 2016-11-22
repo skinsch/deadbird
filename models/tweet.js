@@ -90,7 +90,9 @@ module.exports = {
   getAllDeleted(start=0, limit=25) {
     return new Promise((resolve, reject) => {
       db.query('SELECT t.id, t.date, t.deleteDate, t.content, t.handle, h.handle, t.tweetid FROM `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE `deleteDate` IS NOT NULL ORDER BY `deleteDate` DESC LIMIT ' + start + ', ' + limit, (err, data) => {
-        err ? reject(err) : resolve(data);
+        db.query('SELECT COUNT(*) FROM `tweets` WHERE `deleteDate` IS NOT NULL', (err, total) => {
+          err ? reject(err) : resolve({tweets: data, total: total[0]['COUNT(*)']});
+        });
       });
     });
   },
