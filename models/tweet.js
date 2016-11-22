@@ -205,6 +205,8 @@ module.exports = {
     return new Promise((resolve, reject) => {
       Handle.getTemplate(handle).then(template => {
         this.getTweetTxt(id).then(tweet => {
+          if (tweet.tweet === undefined) return reject("TWEET_NOT_EXIST");
+
           $ = cheerio.load(template.template);
           $('.PermalinkOverlay').css('display', 'block');
           $('.PermalinkOverlay-modal').prepend(tweet.tweet).html();
@@ -220,8 +222,9 @@ module.exports = {
   genTimeline(handle) {
     return new Promise((resolve, reject) => {
       Handle.getTemplate(handle).then(template => {
-        this.getDeletedTweets(handle).then(tweets => {
+        if (template.template === undefined) return reject("HANDLE_NOT_EXIST");
 
+        this.getDeletedTweets(handle).then(tweets => {
           let htmlTweets = "";
           $ = cheerio.load(template.template);
           $('#permalink-overlay').remove();

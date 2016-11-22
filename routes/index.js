@@ -29,8 +29,9 @@ router.get('/:handle', function(req, res, next) {
 
   Tweet.genTimeline(handle).then(html => {
     res.send(html);
+  }, err => {
+    res.redirect(`/`);
   });
-
 });
 
 router.get('/:handle/status/:id', function(req, res, next) {
@@ -39,6 +40,8 @@ router.get('/:handle/status/:id', function(req, res, next) {
 
   Tweet.genTweetPage(handle, id).then(html => {
     res.send(html);
+  }, err => {
+    res.redirect(`/${handle}`);
   });
 });
 
