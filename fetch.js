@@ -90,9 +90,9 @@ function getTweets(user, cb) {
     //data.pinned  = attribs.class.indexOf('user-pinned') !== -1;
     data.retweet = attribs['data-retweet-id'] !== undefined;
     data.tweetid = data.retweet ? attribs['data-retweet-id'] : attribs['data-tweet-id'];
-    data.timelineTweet = $("div.js-profile-popup-actionable[data-item-id='" + $($('.stream-items li p.tweet-text')[info.index]).parent().parent().parent().data('item-id') + "']").parent().html();
-    //data.content = tweet.children[0].data;
 
+    $('.js-action-profile-avatar').attr('src', `profileImg/${user.id}${user.ext}`);
+    data.timelineTweet = $("div.js-profile-popup-actionable[data-item-id='" + $($('.stream-items li p.tweet-text')[info.index]).parent().parent().parent().data('item-id') + "']").parent().html();
 
     if (data.retweet) {
       data.content = $("div[data-retweet-id=" + data.tweetid + "] .js-tweet-text-container p").text();
