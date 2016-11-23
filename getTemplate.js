@@ -41,6 +41,8 @@ function getTemplate(handle, cb) {
     $ = cheerio.load(body, {
       normalizeWhitespace: true
     });
+
+    // Empty time line and remove extraneous info
     $('.Grid-cell .u-lg-size2of3').empty();
     $('.Grid-cell .u-size1of3').remove();
     $('link[rel="preload"]').remove();
@@ -49,7 +51,18 @@ function getTemplate(handle, cb) {
     $('#global-nav-moments').remove();
     $('.pull-right').remove();
     $('.ProfileNav-item--userActions').remove();
+
+    // Replace favicon
+    $('meta[name="msapplication-TileImage"]').remove();
+    $('link[rel="mask-icon"]').remove();
+    $('link[rel="shortcut icon"]').remove();
+    $('link[rel="apple-touch-icon"]').remove();
+    $('head').append(`<link rel="icon" type="image/png" href="img/favicon.png" sizes="196x196">`);
+
+    // Replace home link
     $('a[data-nav="home"]').attr('href', settings.general.basehref);
+
+    // Fix stream with proper div
     $('.Grid-cell .u-lg-size2of3').append(`
 <div id="timeline" class="ProfileTimeline ">
   <div class="stream">
@@ -58,9 +71,17 @@ function getTemplate(handle, cb) {
   </div>
 </div>`);
 
+    // Extract profile pic and replace with local version
+    let profileImage = $('.ProfileAvatar-image').attr('src');
+    let ext = profileImage.match(/400x400(.*)/)[1];
+    $('.ProfileAvatar-image').attr('src', `profileImg/${handle.id}${ext}`);
+
     fs.writeFile(`./data/templates/${handle.id}`, $.html(), () => {
-      Handle.update({template: 1}, handle.id).then(() => {
-        cb();
+      let dl = request(profileImage).pipe(fs.createWriteStream(`./data/profileImg/${handle.id}${ext}`));
+      Handle.update({template: 1, ext}, handle.id).then(() => {
+        dl.on('finish', () => {
+          cb();
+        });
       });
     });
   });

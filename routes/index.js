@@ -1,3 +1,4 @@
+const path     = require('path');
 const async    = require('async');
 const express  = require('express');
 const cheerio  = require('cheerio');
@@ -33,6 +34,10 @@ router.get('/', function(req, res, next) {
       res.render('stream', { basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets });
     });
   });
+});
+
+router.get('/profileImg/:img', function(req, res, next) {
+  res.sendFile(path.resolve(__dirname + '/../data/profileImg/' + req.params.img));
 });
 
 router.get('/:handle', function(req, res, next) {

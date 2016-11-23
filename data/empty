@@ -3,3 +3,4 @@
 rm templates/*
 rm timelineTweets/*
 rm tweets/*
+rm profileImg/*
