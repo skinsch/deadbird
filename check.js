@@ -9,6 +9,7 @@ if (settings.general.rate === 0 || settings.general.timeout === 0) {
 
 const db      = require('./models/db');
 const Tweet   = require('./models/tweet');
+const Handle  = require('./models/handle');
 
 const charm = require('charm')();
 charm.pipe(process.stdout);
@@ -32,9 +33,11 @@ let q = async.queue((tweet, cb) => {
     charm.erase('line');
     charm.write(`${++total} / ${startTotal}+${fails} | ${startTotal+fails-total} | ${Math.floor(rate)} tweets/sec | eta: ${format} | ${tweet.handle} | https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`)
     if (!exists) {
-      charm.write(`\n\t${tweet.content}\n\n`);
-      Tweet.deleted(tweet.id).then(() => {
-        cb();
+      Handle.incVal('deleted', 1, tweet.handle).then(() => {
+        charm.write(`\n\t${tweet.content}\n\n`);
+        Tweet.deleted(tweet.id).then(() => {
+          cb();
+        });
       });
     } else {
       cb();

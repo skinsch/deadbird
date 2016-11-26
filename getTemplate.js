@@ -13,7 +13,7 @@ charm.cursor(false);
 
 let handles;
 db.init(() => {
-  Handle.getAllMissingTemplates().then(data => {
+  Handle.getAll().then(data => {
     handles = data;
     main();
   });

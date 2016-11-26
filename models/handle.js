@@ -31,13 +31,6 @@ module.exports = {
       });
     });
   },
-  getAllMissingTemplates() {
-    return new Promise((resolve, reject) => {
-      db.query('SELECT * FROM `handles` WHERE `template` = 0', (err, data) => {
-        err ? reject(err) : resolve(data);
-      });
-    });
-  },
   getCond(cond) {
     return new Promise((resolve, reject) => {
       cond = andify(cond);
@@ -66,9 +59,22 @@ module.exports = {
       });
     });
   },
-  getVal(key, id) {
+  incVal(key, value, handle) {
+    value = Number(value);
     return new Promise((resolve, reject) => {
-      db.query('SELECT * FROM `handles` WHERE ?', {id}, (err, data) => {
+      this.getVal(key, handle).then(previous => {
+        previous += value;
+        db.query('UPDATE `handles` SET ? WHERE ?', [{[key]: previous}, {handle}], (err, data) => {
+          if (err) reject(err);
+          else if (data.length === 0) resolve(null);
+          else resolve(previous);
+        });
+      });
+    });
+  },
+  getVal(key, handle) {
+    return new Promise((resolve, reject) => {
+      db.query('SELECT * FROM `handles` WHERE ?', {handle}, (err, data) => {
         if (err) reject(err);
         else if (data.length === 0) resolve(null);
         else resolve(data[0][key]);

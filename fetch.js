@@ -7,14 +7,14 @@ charm.pipe(process.stdout);
 charm.cursor(false);
 
 const db     = require('./models/db');
-const handle = require('./models/handle');
-const tweet  = require('./models/tweet');
+const Handle = require('./models/handle');
+const Tweet  = require('./models/tweet');
 
 let handles;
 
 async.series([
   cb => db.init(cb),
-  cb => handle.getAll().then(data => {
+  cb => Handle.getAll().then(data => {
     handles = data;
     cb();
   })
@@ -26,6 +26,7 @@ function main() {
 
   let completed = 0;
   let totalNewTweets = 0;
+  let lastTime = new Date().getTime();
 
   async.eachLimit(handles, 15, (user, cb) => {
     let newTweets;
@@ -34,25 +35,28 @@ function main() {
 
       newTweets = 0;
       async.eachLimit(tweets, 10, (thing, innercb) => {
+        lastTime = new Date().getTime();
 
-        tweet.add(thing, user).then(result => {
+        Tweet.add(thing, user).then(result => {
           if (result.id !== 0) newTweets++;
           innercb();
         });
       }, () => {
-        charm.left(255);
-        charm.erase('line');
-        charm.write(`${++completed} / ${handles.length} | ${user.handle} | ${newTweets} new tweets added`)
-        if (completed === handles.length) {
-          if (newTweets === 0) charm.erase('line');
-          else console.log('\n');
-        }
+        Handle.incVal('total', newTweets, user.handle).then(() => {
+          charm.left(255);
+          charm.erase('line');
+          charm.write(`${++completed} / ${handles.length} | ${user.handle} | ${newTweets} new tweets added`)
+          if (completed === handles.length) {
+            if (newTweets === 0) charm.erase('line');
+            else console.log('\n');
+          }
 
-        if (newTweets !== 0) {
-          totalNewTweets += newTweets;
-          charm.write('\n');
-        }
-        cb();
+          if (newTweets !== 0) {
+            totalNewTweets += newTweets;
+            charm.write('\n');
+          }
+          cb();
+        });
       });
 
     });
@@ -62,6 +66,13 @@ function main() {
     console.log(`\n${totalNewTweets} new tweets added`);
     process.exit();
   });
+
+  setInterval(() => {
+    if (new Date().getTime() - lastTime > 60000) {
+      console.log("Fetcher appears hung...aborting");
+      process.exit();
+    }
+  }, 5000);
 }
 
 function tweetExists(handle, id, cb) {
@@ -91,14 +102,15 @@ function getTweets(user, cb) {
     data.retweet = attribs['data-retweet-id'] !== undefined;
     data.tweetid = data.retweet ? attribs['data-retweet-id'] : attribs['data-tweet-id'];
 
-    data.timelineTweet = $("div.js-profile-popup-actionable[data-item-id='" + $($('.stream-items li p.tweet-text')[info.index]).parent().parent().parent().data('item-id') + "']").parent().html();
-
     if (data.retweet) {
       data.content = $("div[data-retweet-id=" + data.tweetid + "] .js-tweet-text-container p").text();
     } else {
       $($('.js-action-profile-avatar')[0]).attr('src', `profileImg/${user.id}${user.ext}`);
       data.content = $("div[data-tweet-id=" + data.tweetid + "] .js-tweet-text-container p").text();
     }
+
+    data.timelineTweet = $("div.js-profile-popup-actionable[data-item-id='" + $($('.stream-items li p.tweet-text')[info.index]).parent().parent().parent().data('item-id') + "']").parent().html();
+
     delete data.retweet;
 
     data.date = tweet.parent.parent.children[1].children[3].children[1].children[0].attribs['data-time'];
