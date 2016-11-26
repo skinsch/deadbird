@@ -1,11 +1,13 @@
 <html>
 <head>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/jquery-ui.min.css">
   <link rel="icon" type="image/png" href="img/favicon.png" sizes="196x196">
   <base href="<%=basehref%>">
   <title>Deadbird</title>
 </head>
 <body>
+  <autocomplete hidden><%-autocomplete%></autocomplete>
   <h1 class="deadbirdtitle"><img id='deadbirdLogo' src='img/deadbird.svg'>Deadbird</h1>
   <% include navbar %>
   <% include pagination %>
@@ -28,5 +30,6 @@
   <script src="js/moment.min.js"></script>
   <script src="js/jquery.js"></script>
   <script src="js/general.js"></script>
+  <script src="js/jquery-ui.min.js"></script>
 </body>
 </html>

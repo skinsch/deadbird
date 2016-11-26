@@ -19,10 +19,18 @@ router.get('/', function(req, res, next) {
   let page = Number((req.query.page || 1));
   if (page < 1) page = 1;
 
-  Tweet.getAllDeleted((page*25)-25).then(data => {
-    let tweets = data.tweets;
-    let totalTweets = data.total;
-
+let tweets, totalTweets, handles;
+  async.parallel([
+    cb => Tweet.getAllDeleted((page*25)-25).then(data => {
+      tweets = data.tweets;
+      totalTweets = data.total;
+      cb();
+    }),
+    cb => Handle.getAll().then(data => {
+      handles = data.map(item => item.handle);
+      cb();
+    })
+  ], () => {
     let tweetData = [];
 
     async.eachLimit(tweets, 1, (tweet, cb) => {
@@ -31,7 +39,7 @@ router.get('/', function(req, res, next) {
         cb();
       });
     }, () => {
-      res.render('stream', { basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets });
+      res.render('stream', { autocomplete: JSON.stringify(handles), basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets });
     });
   });
 });

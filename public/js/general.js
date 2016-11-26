@@ -1,4 +1,5 @@
 $(() => {
+  let autocompleteUsers = JSON.parse($('autocomplete').html());
   let base = $('base').attr('href');
   updateDates();
   setInterval(updateDates, 1000);
@@ -29,6 +30,10 @@ $(() => {
   $('.js-adaptive-photo img').on('click', function(e) {
     window.location.href = `${base}${$(this).attr('src')}`;
     return false;
+  });
+
+  $( "#deadbirdSearch" ).autocomplete({
+    source: autocompleteUsers
   });
 });
 

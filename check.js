@@ -46,7 +46,7 @@ let q = async.queue((tweet, cb) => {
 }, settings.general.rate);
 
 q.drain = () => {
-  console.log('\ndone');
+  console.log('');
   charm.cursor(true);
   process.exit();
 };

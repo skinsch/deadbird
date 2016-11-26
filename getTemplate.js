@@ -30,8 +30,8 @@ function main() {
       cb();
     });
   }, () => {
+    console.log('');
     charm.cursor(true);
-    console.log('\ndone');
     process.exit();
   });
 }
