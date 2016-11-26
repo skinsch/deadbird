@@ -15,6 +15,7 @@ var pool = mysql.createPool({
 });
 
 module.exports.init = function(cb) {
+  if (initDone) cb();
 
   pool.on('connection', connection => {
     if (!initDone) {
