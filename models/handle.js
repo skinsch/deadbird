@@ -24,9 +24,9 @@ module.exports = {
       });
     });
   },
-  getAll() {
+  getAll(order='id') {
     return new Promise((resolve, reject) => {
-      db.query('SELECT * FROM `handles`', (err, data) => {
+      db.query('SELECT * FROM `handles` ORDER BY ' + order + ' DESC', (err, data) => {
         err ? reject(err) : resolve(data);
       });
     });

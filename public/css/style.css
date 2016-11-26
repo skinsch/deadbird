@@ -10640,6 +10640,7 @@ textarea:focus::placeholder {
 }
 
 .deadbirdtitle {
+  color: #292f33;
   font-size: 30pt;
   text-align: center;
   margin-top: 25px;
@@ -10693,4 +10694,16 @@ textarea:focus::placeholder {
 
 #deadbirdStream {
     margin-bottom: 50px;
+}
+
+#deadbirdMain {
+    margin: auto;
+    width: 75%;
+    text-align: center;
+}
+
+#leaderboard {
+    margin: auto;
+    margin-top: 25px;
+    width: 50%;
 }

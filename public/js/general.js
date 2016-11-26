@@ -1,5 +1,5 @@
 $(() => {
-  let autocompleteUsers = JSON.parse($('autocomplete').html());
+  let autocompleteUsers = JSON.parse(($('autocomplete').html() || "[]"));
   let base = $('base').attr('href');
   updateDates();
   setInterval(updateDates, 1000);
@@ -32,9 +32,25 @@ $(() => {
     return false;
   });
 
-  $( "#deadbirdSearch" ).autocomplete({
-    source: autocompleteUsers
+  if (autocompleteUsers.length > 0) {
+    $( "#deadbirdSearch" ).autocomplete({
+      source: autocompleteUsers,
+      select: () => {
+        console.log(`${base}${$('#deadbirdSearch').val()}`);
+        submitSearch();
+      }
+    });
+  }
+
+  $("#deadbirdSearch").on('keyup', function (e) {
+    if (e.keyCode == 13) {
+      submitSearch();
+    }
   });
+
+  function submitSearch() {
+    window.location.href = `${base}${$('#deadbirdSearch').val()}`;
+  }
 });
 
 function updateDates() {

@@ -44,6 +44,12 @@ let tweets, totalTweets, handles;
   });
 });
 
+router.get('/leaderboards', (req, res, next) => {
+  Handle.getAll('deleted').then(handles => {
+    res.render('leaderboards', {basehref: settings.general.basehref, originalUrl, handles});
+  });
+});
+
 router.get('/profileImg/:img', function(req, res, next) {
   res.sendFile(path.resolve(__dirname + '/../data/profileImg/' + req.params.img));
 });
