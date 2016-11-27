@@ -29,8 +29,8 @@ SET time_zone = "+00:00";
 CREATE TABLE `handles` (
   `id` int(11) NOT NULL,
   `handle` varchar(32) NOT NULL,
-  `total` int(11) NOT NULL,
-  `deleted` int(11) NOT NULL,
+  `total` int(11) NOT NULL DEFAULT '0',
+  `deleted` int(11) NOT NULL DEFAULT '0',
   `template` int(11) NOT NULL DEFAULT '0',
   `ext` varchar(5) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -174,7 +174,9 @@ ALTER TABLE `handles`
 --
 ALTER TABLE `tweets`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `asdf` (`handle`,`tweetid`);
+  ADD UNIQUE KEY `asdf` (`handle`,`tweetid`),
+  ADD KEY `handle` (`handle`),
+  ADD KEY `tweetid` (`tweetid`);
 
 --
 -- AUTO_INCREMENT for dumped tables

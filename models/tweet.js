@@ -22,50 +22,50 @@ module.exports = {
 
       data.date = moment(new Date(data.date*1000).getTime()).format("YYYY-MM-DD HH:mm:ss");
 
-      this.getCond({tweetid: String(data.tweetid)}).then(exists => {
-        if (exists && exists.tweetSaved !== 0) return resolve({id: 0});
-
-        async.parallel([
-          // Save html for tweet
-          cb => {
-            request(`https://twitter.com/${user.handle}/status/${data.tweetid}`, (err, response, body) => {
-               if (err || body === undefined) return resolve({id: 0});
-              $ = cheerio.load(body, {
-                normalizeWhitespace: true
-              });
-
-              let mainTweet = new Readable;
-              if (!data.retweet) {
-                $($('.js-action-profile-avatar')[0]).attr('src', `profileImg/${user.id}${user.ext}`);
-              }
-              mainTweet.push($('.PermalinkOverlay-modal').html());
-              mainTweet.push(null);
-
-              mainTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/tweets/${data.tweetid}.gz`));
-
-              let timelineTweet = new Readable;
-              timelineTweet.push(timelineTweetHTML);
-              timelineTweet.push(null);
-
-              timelineTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/timelineTweets/${data.tweetid}.gz`));
-              cb();
-            });
-          },
-
-          cb => {
-            db.query('INSERT IGNORE INTO `tweets` SET ?', data, (err, result) => {
+      async.parallel([
+        // Save html for tweet
+        cb => {
+          db.query('INSERT IGNORE INTO `tweets` SET ?', data, (err, result) => {
+            if (result.affectedRows === 0) {
+              cb("bad");
+              return resolve({id: 0});
+            } else {
               err ? cb(err) : cb(null, {id: result.insertId});
+            }
+          });
+        },
+
+        cb => {
+          request(`https://twitter.com/${user.handle}/status/${data.tweetid}`, (err, response, body) => {
+             if (err || body === undefined) return resolve({id: 0});
+            $ = cheerio.load(body, {
+              normalizeWhitespace: true
             });
-          }
-        ], (err, results) => {
-          if (err) reject(err);
-          else {
-            let obj = results.filter(a => a !== undefined)[0];
-            this.update({tweetSaved: 1}, obj.id).then(() => {
-              resolve(obj);
-            });
-          }
-        });
+
+            let mainTweet = new Readable;
+            if (!data.retweet) {
+              $($('.js-action-profile-avatar')[0]).attr('src', `profileImg/${user.id}${user.ext}`);
+            }
+            mainTweet.push($('.PermalinkOverlay-modal').html());
+            mainTweet.push(null);
+
+            mainTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/tweets/${data.tweetid}.gz`));
+
+            let timelineTweet = new Readable;
+            timelineTweet.push(timelineTweetHTML);
+            timelineTweet.push(null);
+
+            timelineTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/timelineTweets/${data.tweetid}.gz`));
+            cb();
+          });
+        }
+      ], (err, results) => {
+        if (!err) {
+          let obj = results.filter(a => a !== undefined)[0];
+          this.update({tweetSaved: 1}, obj.id).then(() => {
+            resolve(obj);
+          });
+        }
       });
     });
   },

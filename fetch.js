@@ -11,8 +11,15 @@ const Handle = require('./models/handle');
 const Tweet  = require('./models/tweet');
 
 let handles;
+let tweetids = [];
 
 async.series([
+  cb => {
+    db.connection.query('SELECT tweetid from tweets', (err, results) => {
+      results.forEach(tweet => tweetids[tweet.tweetid] = true);
+      cb();
+    })
+  },
   cb => db.init(cb),
   cb => Handle.getAll().then(data => {
     handles = data;
@@ -36,6 +43,7 @@ function main() {
       newTweets = 0;
       async.eachLimit(tweets, 10, (thing, innercb) => {
         lastTime = new Date().getTime();
+        if (thing === null) return innercb();
 
         Tweet.add(thing, user).then(result => {
           if (result.id !== 0) newTweets++;
@@ -87,6 +95,14 @@ function getTweets(user, cb) {
     if (body === undefined || err) return cb([]);
     $ = cheerio.load(body);
 
+    // Update urls to be relative
+    $('.js-user-profile-link').map(function() {
+      if ($(this).attr('href') !== undefined) {
+        $(this).attr('href', $(this).attr('href').slice(1));
+      }
+      return this;
+    });
+
     let rawTweets = Array.prototype.slice.call($('.stream-items li p.tweet-text'));
     let tweets = [];
     rawTweets.forEach((rawTweet, index) => tweets.push(tweetParser(rawTweet, {user, index})));
@@ -101,6 +117,9 @@ function getTweets(user, cb) {
     //data.pinned  = attribs.class.indexOf('user-pinned') !== -1;
     data.retweet = attribs['data-retweet-id'] !== undefined;
     data.tweetid = data.retweet ? attribs['data-retweet-id'] : attribs['data-tweet-id'];
+    if (data.tweetid in tweetids) {
+      return null;
+    }
 
     if (data.retweet) {
       data.content = $("div[data-retweet-id=" + data.tweetid + "] .js-tweet-text-container p").text();
