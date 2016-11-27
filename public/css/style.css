@@ -10703,6 +10703,7 @@ textarea:focus::placeholder {
 }
 
 #leaderboard {
+    display: none;
     margin: auto;
     margin-top: 25px;
     width: 50%;
