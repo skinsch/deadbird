@@ -43,9 +43,6 @@ module.exports = {
             });
 
             let mainTweet = new Readable;
-            if (!data.retweet) {
-              $($('.js-action-profile-avatar')[0]).attr('src', `profileImg/${user.id}${user.ext}`);
-            }
             mainTweet.push($('.PermalinkOverlay-modal').html());
             mainTweet.push(null);
 
