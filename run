@@ -1,0 +1,8 @@
+#!/bin/bash
+tmux new-session -s 'deadbird' -d
+tmux send -t 'deadbird':0 'npm start' ENTER
+tmux new-window
+tmux send -t 'deadbird':1 'while true; do node fetch; done' ENTER
+tmux new-window
+tmux send -t 'deadbird':2 'while true; do node check; sleep 900; done' ENTER
+tmux attach -t 'deadbird':0

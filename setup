@@ -1,0 +1,19 @@
+#!/bin/bash
+
+echo -e "This setup script will setup the deadbird database for you and fetch the initial twitter user templates.\n"
+
+read -p "MySQL Admin username: " username
+read -s -p "MySQL Admin password: " password
+echo -e '\n'
+
+echo -e "Creating deadbird database..."
+mysql -u $username -p$password -e "CREATE DATABASE deadbird;"
+
+echo -e "\nImporting deadbird.sql..."
+mysql -u $username -p$password -D deadbird < deadbird.sql
+
+echo -e "\nRunning initial template fetcher..."
+
+node getTemplate
+
+echo -e "\nDone!"
