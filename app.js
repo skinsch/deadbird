@@ -13,7 +13,11 @@ const http         = require('http');
 const settings = require('./utils').settings;
 
 const io = require('socket.io')(settings.general.socket);
-let data = {};
+let data = {
+  fetcher: {},
+  checker: {}
+};
+
 require('./socket')(io, data);
 
 const index = require('./routes/index');
@@ -63,14 +67,28 @@ app.use((err, req, res, next) => {
 // Fetcher/Checker spawners
 function spawnFetcher() {
   return new Promise((resolve, reject) => {
+    data.fetcher = {};
     const fetcher = spawn('node', ['fetch']);
 
-    fetcher.stdout.on('data', (data) => {
-      // Send status to sockets
-      console.log(`stdout: ${data}`);
+    fetcher.stdout.on('data', fetchData => {
+      try {
+        fetchData = JSON.parse(fetchData);
+      } catch(e) {
+        return;
+      }
+
+      if (fetchData.done === undefined) {
+        data.fetcher.status = fetchData.status;
+        data.fetcher.user   = fetchData.user;
+        data.fetcher.text   = fetchData.text;
+      } else {
+        data.fetcher = {};
+        data.fetcher.text      = fetchData.text;
+        data.fetcher.nextCycle = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
+      }
     });
 
-    fetcher.on('close', (code) => {
+    fetcher.on('close', code => {
       resolve();
     });
   });
@@ -78,18 +96,55 @@ function spawnFetcher() {
 
 function spawnChecker() {
   return new Promise((resolve, reject) => {
-    const fetcher = spawn('node', ['check']);
+    data.checker = {};
+    const checker = spawn('node', ['check']);
 
-    fetcher.stdout.on('data', (data) => {
-      // Send status to sockets
-      console.log(`stdout: ${data}`);
+    checker.stdout.on('data', checkData => {
+      try {
+        checkData = JSON.parse(checkData);
+      } catch(e) {
+        return;
+      }
+      if (checkData.text === undefined) {
+        // Update data
+        data.checker.status    = checkData.status;
+        data.checker.remaining = checkData.remaining;
+        data.checker.rate      = checkData.rate;
+        data.checker.eta       = checkData.eta;
+        data.checker.user      = checkData.user;
+        data.checker.url       = checkData.url;
+      } else {
+        data.checker = {};
+        data.checker.text = checkData.text;
+        data.checker.nextCycle = new Date().getTime() + settings.general.checkerRestInterval * 1000;
+      }
     });
 
-    fetcher.on('close', (code) => {
+    checker.on('close', code => {
       resolve();
     });
   });
 }
+
+checkerLoop();
+function checkerLoop() {
+  spawnChecker().then(() => {
+    setTimeout(() => {
+      checkerLoop();
+    }, settings.general.checkerRestInterval * 1000);
+  });
+}
+
+fetcherLoop();
+function fetcherLoop() {
+  spawnFetcher().then(() => {
+    setTimeout(() => {
+      fetcherLoop();
+    }, settings.general.fetcherRestInterval * 1000);
+  });
+}
+
+
 ///////////////////////////
 
 module.exports = {

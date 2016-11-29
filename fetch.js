@@ -85,7 +85,7 @@ function main() {
       charm.cursor(true);
       console.log(`\n${totalNewTweets} new tweets added`);
     } else {
-      process.stdout.write(JSON.stringify({text: `${totalNewTweets} new tweets added`}));
+      process.stdout.write(JSON.stringify({done: true, text: `${totalNewTweets} new tweets added`}));
     }
     process.exit(0);
   });
