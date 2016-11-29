@@ -8,6 +8,7 @@
     "timeout": 0,
     "fetcherRestInterval": 0,
     "checkerRestInterval": 450,
+    "templateRestInterval": 86400,
     "socket": 8080
   },
   "db": {

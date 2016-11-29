@@ -15,7 +15,8 @@ const settings = require('./utils').settings;
 const io = require('socket.io')(settings.general.socket);
 let data = {
   fetcher: {},
-  checker: {}
+  checker: {},
+  template: {}
 };
 
 require('./socket')(io, data);
@@ -64,63 +65,61 @@ app.use((err, req, res, next) => {
   res.render('error');
 });
 
-// Fetcher/Checker spawners
-function spawnFetcher() {
-  return new Promise((resolve, reject) => {
-    data.fetcher = {};
-    const fetcher = spawn('node', ['fetch']);
+// Spawners
+function spawner(mode) {
+  let scripts = {fetcher: 'fetch', checker: 'check', template: 'getTemplate'};
 
-    fetcher.stdout.on('data', fetchData => {
+  return new Promise((resolve, reject) => {
+    data[mode] = {};
+
+    const spawned = spawn('node', [scripts[mode]]);
+
+    spawned.stdout.on('data', spawnedData => {
+      // Sometimes the JSON output is garbled because of two
+      // objects outputting at the same time.
       try {
-        fetchData = JSON.parse(fetchData);
+        spawnedData = JSON.parse(spawnedData);
       } catch(e) {
         return;
       }
 
-      if (fetchData.done === undefined) {
-        data.fetcher.status = fetchData.status;
-        data.fetcher.user   = fetchData.user;
-        data.fetcher.text   = fetchData.text;
-      } else {
-        data.fetcher = {};
-        data.fetcher.text      = fetchData.text;
-        data.fetcher.nextCycle = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
+      if (mode === 'checker') {
+        if (spawnedData.text === undefined) {
+          // Update data
+          data[mode].status    = spawnedData.status;
+          data[mode].remaining = spawnedData.remaining;
+          data[mode].rate      = spawnedData.rate;
+          data[mode].eta       = spawnedData.eta;
+          data[mode].user      = spawnedData.user;
+          data[mode].url       = spawnedData.url;
+        } else {
+          data[mode] = {};
+          data[mode].text = spawnedData.text;
+          data[mode].nextCycle = new Date().getTime() + settings.general.checkerRestInterval * 1000;
+        }
+      } else if (mode === 'fetcher') {
+        if (spawnedData.done === undefined) {
+          data[mode].status = spawnedData.status;
+          data[mode].user   = spawnedData.user;
+          data[mode].text   = spawnedData.text;
+        } else {
+          data[mode] = {};
+          data[mode].text = spawnedData.text;
+          data[mode].nextCycle = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
+        }
+      } else if (mode === 'template') {
+        if (spawnedData.done === undefined) {
+          data[mode].status = spawnedData.status;
+          data[mode].text   = spawnedData.text;
+        } else {
+          data[mode] = {};
+          data[mode].text = spawnedData.text;
+          data[mode].nextCycle = new Date().getTime() + settings.general.templateRestInterval * 1000;
+        }
       }
     });
 
-    fetcher.on('close', code => {
-      resolve();
-    });
-  });
-}
-
-function spawnChecker() {
-  return new Promise((resolve, reject) => {
-    data.checker = {};
-    const checker = spawn('node', ['check']);
-
-    checker.stdout.on('data', checkData => {
-      try {
-        checkData = JSON.parse(checkData);
-      } catch(e) {
-        return;
-      }
-      if (checkData.text === undefined) {
-        // Update data
-        data.checker.status    = checkData.status;
-        data.checker.remaining = checkData.remaining;
-        data.checker.rate      = checkData.rate;
-        data.checker.eta       = checkData.eta;
-        data.checker.user      = checkData.user;
-        data.checker.url       = checkData.url;
-      } else {
-        data.checker = {};
-        data.checker.text = checkData.text;
-        data.checker.nextCycle = new Date().getTime() + settings.general.checkerRestInterval * 1000;
-      }
-    });
-
-    checker.on('close', code => {
+    spawned.on('close', code => {
       resolve();
     });
   });
@@ -128,7 +127,7 @@ function spawnChecker() {
 
 checkerLoop();
 function checkerLoop() {
-  spawnChecker().then(() => {
+  spawner('checker').then(() => {
     setTimeout(() => {
       checkerLoop();
     }, settings.general.checkerRestInterval * 1000);
@@ -137,19 +136,25 @@ function checkerLoop() {
 
 fetcherLoop();
 function fetcherLoop() {
-  spawnFetcher().then(() => {
+  spawner('fetcher').then(() => {
     setTimeout(() => {
       fetcherLoop();
     }, settings.general.fetcherRestInterval * 1000);
   });
 }
 
+templateLoop();
+function templateLoop() {
+  spawner('template').then(() => {
+    setTimeout(() => {
+      templateLoop();
+    }, settings.general.templateRestInterval * 1000);
+  });
+}
 
-///////////////////////////
+/////////////
 
 module.exports = {
   server,
-  app,
-  spawnFetcher,
-  spawnChecker
+  app
 };
