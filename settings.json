@@ -5,7 +5,10 @@
     "basehref": "http://localhost:3000/",
     "baseURL": "",
     "rate": 0,
-    "timeout": 0
+    "timeout": 0,
+    "fetcherRestInterval": 0,
+    "checkerRestInterval": 450,
+    "socket": 8080
   },
   "db": {
     "prod": {

@@ -1,5 +1,7 @@
 const express      = require('express');
 const path         = require('path');
+const spawn        = require('child_process').spawn;
+const Promise      = require('bluebird');
 const favicon      = require('serve-favicon');
 const logger       = require('morgan');
 const cookieParser = require('cookie-parser');
@@ -9,6 +11,10 @@ const debug        = require('debug')('Deadbird:server');
 const http         = require('http');
 
 const settings = require('./utils').settings;
+
+const io = require('socket.io')(settings.general.socket);
+let data = {};
+require('./socket')(io, data);
 
 const index = require('./routes/index');
 
@@ -54,7 +60,41 @@ app.use((err, req, res, next) => {
   res.render('error');
 });
 
+// Fetcher/Checker spawners
+function spawnFetcher() {
+  return new Promise((resolve, reject) => {
+    const fetcher = spawn('node', ['fetch']);
+
+    fetcher.stdout.on('data', (data) => {
+      // Send status to sockets
+      console.log(`stdout: ${data}`);
+    });
+
+    fetcher.on('close', (code) => {
+      resolve();
+    });
+  });
+}
+
+function spawnChecker() {
+  return new Promise((resolve, reject) => {
+    const fetcher = spawn('node', ['check']);
+
+    fetcher.stdout.on('data', (data) => {
+      // Send status to sockets
+      console.log(`stdout: ${data}`);
+    });
+
+    fetcher.on('close', (code) => {
+      resolve();
+    });
+  });
+}
+///////////////////////////
+
 module.exports = {
   server,
-  app
+  app,
+  spawnFetcher,
+  spawnChecker
 };

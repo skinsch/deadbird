@@ -3,23 +3,25 @@ const async    = require('async');
 const express  = require('express');
 const cheerio  = require('cheerio');
 const router   = express.Router();
+const request  = require('request');
 const settings = require('../utils').settings;
 
 const Tweet  = require('../models/tweet');
 const Handle = require('../models/handle');
 
-let originalUrl, autocomplete;
+let originalUrl, autocomplete, socket;
 
 // Cache the handles list for autocomplete
 async.parallel([
-  cb => Handle.getAll().then(data => {
-    autocomplete = JSON.stringify(data.map(item => item.handle));
-    cb();
-  })
+  cb => {
+    socket = settings.general.socket;
+    updateAutoComplete(() => {
+      cb();
+    });
+  }
 ], () => {
   main();
 });
-
 
 function main() {
 
@@ -49,14 +51,14 @@ function main() {
           cb();
         });
       }, () => {
-        res.render('stream', { autocomplete, basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets });
+        res.render('stream', { autocomplete, socket, basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets });
       });
     });
   });
 
   router.get('/leaderboards', (req, res, next) => {
     Handle.getAll('deleted').then(handles => {
-      res.render('leaderboards', {autocomplete, basehref: settings.general.basehref, originalUrl, handles});
+      res.render('leaderboards', {autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
     });
   });
 
@@ -70,8 +72,20 @@ function main() {
 
     Tweet.genTimeline(handle).then(html => {
       res.send(html);
+
+    // User doesn't exist - Add to db. This behavior will be more sophisticated in the future.
     }, err => {
-      res.redirect(`/`);
+      request(`https://twitter.com/${handle}`, (err, response, body) => {
+        if (response.statusCode !== 404) {
+          Handle.add(handle).then(() => Handle.fetchTemplate(handle, () => {
+            updateAutoComplete(() => {
+              res.redirect(`/`);
+            });
+          }));
+        } else {
+          res.redirect('/');
+        }
+      });
     });
   });
 
@@ -84,6 +98,14 @@ function main() {
     }, err => {
       res.redirect(`/${handle}`);
     });
+  });
+}
+
+function updateAutoComplete(cb) {
+  console.log('autocomplete is up to date!');
+  Handle.getAll().then(data => {
+    autocomplete = JSON.stringify(data.map(item => item.handle));
+    cb();
   });
 }
 

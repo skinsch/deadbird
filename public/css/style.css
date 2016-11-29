@@ -10673,14 +10673,6 @@ textarea:focus::placeholder {
     display: inline;
 }
 
-#deadbirdNav li:first-child:before {
-    content: '';
-}
-
-#deadbirdNav li:before {
-    content: ' | ';
-}
-
 #deadbirdSearch {
     text-align: center;
 }

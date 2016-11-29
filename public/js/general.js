@@ -1,5 +1,6 @@
 $(() => {
   let autocompleteUsers = JSON.parse(($('autocomplete').html() || "[]"));
+  let port = $('socket').html();
   let base = $('base').attr('href');
   updateDates();
   setInterval(updateDates, 1000);
@@ -32,11 +33,32 @@ $(() => {
     return false;
   });
 
+  $.ui.autocomplete.prototype._renderItem = function (ul, item) {
+    if (item.label === `Add "${$('#deadbirdSearch').val()}" to database`) {
+      item.label = `<strong>${item.label}</strong>`;
+      item.value = $('#deadbirdSearch').val()
+    }
+    console.log(item);
+
+    return $("<li></li>")
+      .data("item.autocomplete", item)
+      .append(`<div id="ui-id-2" tabindex="-1" class="ui-menu-item-wrapper">${item.label}</div>`)
+      .appendTo(ul);
+  };
   if (autocompleteUsers.length > 0) {
     $( "#deadbirdSearch" ).autocomplete({
-      source: autocompleteUsers,
+      source: function(request, response) {
+        let users;
+        if ($('#deadbirdSearch').val().length <= 15 && autocompleteUsers.indexOf($('#deadbirdSearch').val()) === -1) {
+          users = autocompleteUsers.concat(`Add "${$('#deadbirdSearch').val()}" to database`);
+        } else {
+          users = autocompleteUsers;
+        }
+        response($.map(users, el => {
+          if (el.match(request.term)) return el;
+        }));
+      },
       select: () => {
-        console.log(`${base}${$('#deadbirdSearch').val()}`);
         submitSearch();
       }
     });
@@ -47,6 +69,8 @@ $(() => {
       submitSearch();
     }
   });
+
+  window.socket = io.connect(":" + port);
 
   function submitSearch() {
     window.location.href = `${base}${$('#deadbirdSearch').val()}`;
