@@ -1,6 +1,35 @@
 <div id="deadbirdNav">
   <ul>
-    <li><a href="leaderboards">View Leaderboards</a></li><br><br
-    <li><input id="deadbirdSearch" type='text' placeholder='View/Add Twitter User' autofocus></li>
+    <%
+      if (originalUrl.match('leaderboards') || originalUrl.match('stats')) {
+    %>
+        <li><a href="">View Stream</a></li> |
+    <%
+      }
+
+      if (originalUrl === '/' || originalUrl.match('stats')) {
+    %>
+        <li><a href="leaderboards">View Leaderboards</a></li><%-originalUrl.match('stats') ? "<br>" : " |"%>
+    <%
+      }
+
+      if (originalUrl === '/' || originalUrl.match('leaderboards')) {
+    %>
+        <li><a href="stats">View Stats</a></li><br>
+    <%
+      }
+    %>
+    <br>
+    <%
+      if (originalUrl.match('stats')) {
+    %>
+        <li><input id="deadbirdSearch" type='text' placeholder='View specific user stats' autofocus></li>
+    <%
+      } else {
+    %>
+      <li><input id="deadbirdSearch" type='text' placeholder='View/Add Twitter User' autofocus></li>
+    <%
+      }
+    %>
   </ul>
 </div>

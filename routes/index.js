@@ -62,6 +62,10 @@ function main() {
     });
   });
 
+  router.get('/stats', (req, res, next) => {
+    res.render('stats', {autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+  });
+
   router.get('/profileImg/:img', function(req, res, next) {
     res.sendFile(path.resolve(__dirname + '/../data/profileImg/' + req.params.img));
   });

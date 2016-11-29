@@ -1,0 +1,21 @@
+<html>
+<head>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" type="image/png" href="img/favicon.png" sizes="196x196">
+  <base href="<%=basehref%>">
+  <title>Deadbird :: Stats</title>
+</head>
+<body>
+  <socket hidden><%-socket%></socket>
+  <a href=""><h1 class="deadbirdtitle"><img id='deadbirdLogo' src='img/deadbird.svg'>Deadbird</h1></a>
+  <% include navbar %>
+  <div id="deadbirdMain">
+    <h1>Stats</h1><br>
+  </div>
+  <script src="js/socket.io.min.js"></script>
+  <script src="js/moment.min.js"></script>
+  <script src="js/jquery.js"></script>
+  <script src="js/general.js"></script>
+</body>
+</html>
