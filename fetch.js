@@ -2,9 +2,13 @@ const cheerio = require('cheerio');
 const request = require('request');
 const async   = require('async');
 
+let tty = process.stdout.isTTY ? true : false;
 const charm = require('charm')();
-charm.pipe(process.stdout);
-charm.cursor(false);
+
+if (tty) {
+  charm.pipe(process.stdout);
+  charm.cursor(false);
+}
 
 const db     = require('./models/db');
 const Handle = require('./models/handle');
@@ -51,17 +55,24 @@ function main() {
         });
       }, () => {
         Handle.incVal('total', newTweets, user.handle).then(() => {
-          charm.left(255);
-          charm.erase('line');
-          charm.write(`${++completed} / ${handles.length} | ${user.handle} | ${newTweets} new tweets added`)
-          if (completed === handles.length) {
+          completed++;
+          if (tty) {
+            charm.left(255);
+            charm.erase('line');
+            charm.write(`${completed} / ${handles.length} | ${user.handle} | ${newTweets} new tweets added`)
+          } else {
+            process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}`, user: user.handle, text: `${newTweets} new tweets added`}));
+          }
+          if (completed === handles.length && tty) {
             if (newTweets === 0) charm.erase('line');
             else console.log('\n');
           }
 
           if (newTweets !== 0) {
             totalNewTweets += newTweets;
-            charm.write('\n');
+            if (tty) {
+              charm.write('\n');
+            }
           }
           cb();
         });
@@ -69,16 +80,24 @@ function main() {
 
     });
   }, () => {
-    charm.down(1);
-    charm.cursor(true);
-    console.log(`\n${totalNewTweets} new tweets added`);
-    process.exit();
+    if (tty) {
+      charm.down(1);
+      charm.cursor(true);
+      console.log(`\n${totalNewTweets} new tweets added`);
+    } else {
+      process.stdout.write(JSON.stringify({text: `${totalNewTweets} new tweets added`}));
+    }
+    process.exit(0);
   });
 
   setInterval(() => {
     if (new Date().getTime() - lastTime > 60000) {
-      console.log("Fetcher appears hung...aborting");
-      process.exit();
+      if (tty) {
+        console.log("Fetcher appears hung...aborting");
+      } else {
+        process.stdout.write(JSON.stringify({text: "Fetcher appears hung...aborting"}));
+      }
+      process.exit(1);
     }
   }, 5000);
 }
