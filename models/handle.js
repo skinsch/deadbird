@@ -1,18 +1,17 @@
-const fs      = require('fs');
-const crypto  = require('crypto');
-const moment  = require('moment');
-const Promise = require('bluebird');
-const cheerio = require('cheerio');
-const db      = require('./db').connection;
-const andify  = require('../utils').andify;
+const fs       = require('fs');
+const crypto   = require('crypto');
+const moment   = require('moment');
+const Promise  = require('bluebird');
+const cheerio  = require('cheerio');
+const request  = require('request');
+const db       = require('./db').connection;
+const andify   = require('../utils').andify;
+const settings = require('../utils').settings;
 
 module.exports = {
-  add(data) {
+  add(handle) {
     return new Promise((resolve, reject) => {
-      let self = this;
-      data.date = moment(new Date(data.date*1000).getTime()).format("YYYY-MM-DD HH:mm:ss");
-
-      db.query('INSERT IGNORE INTO `handles` SET ?', data, (err, result) => {
+      db.query('INSERT IGNORE INTO `handles` SET ?', {handle}, (err, result) => {
         err ? reject(err) : resolve({id: result.insertId});
       });
     });
@@ -87,6 +86,58 @@ module.exports = {
         if (handle === null) return resolve({});
         fs.readFile(`./data/templates/${handle.id}`, 'utf8', (err, template) => {
           resolve({template});
+        });
+      });
+    });
+  },
+  fetchTemplate(handle, cb) {
+    this.getCond({handle}).then(handle => {
+      request(`https://twitter.com/${handle.handle}`, (err, response, body) => {
+        $ = cheerio.load(body, {
+          normalizeWhitespace: true
+        });
+
+        // Empty time line and remove extraneous info
+        $('.Grid-cell .u-lg-size2of3').empty();
+        $('.Grid-cell .u-size1of3').remove();
+        $('link[rel="preload"]').remove();
+        $('script[async]').remove();
+        $('#init-data').remove();
+        $('#global-nav-moments').remove();
+        $('.pull-right').remove();
+        $('.ProfileNav-item--userActions').remove();
+
+        // Replace favicon
+        $('meta[name="msapplication-TileImage"]').remove();
+        $('link[rel="mask-icon"]').remove();
+        $('link[rel="shortcut icon"]').remove();
+        $('link[rel="apple-touch-icon"]').remove();
+        $('head').append(`<link rel="icon" type="image/png" href="img/favicon.png" sizes="196x196">`);
+
+        // Replace home link
+        $('a[data-nav="home"]').attr('href', settings.general.basehref);
+
+        // Fix stream with proper div
+        $('.Grid-cell .u-lg-size2of3').append(`
+    <div id="timeline" class="ProfileTimeline ">
+      <div class="stream">
+       <ol class="stream-items js-navigable-stream" id="stream-items-id">
+       </ol>
+      </div>
+    </div>`);
+
+        // Extract profile pic and replace with local version
+        let profileImage = $('.ProfileAvatar-image').attr('src');
+        let ext = profileImage.match(/400x400(.*)/)[1];
+        $('.ProfileAvatar-image').attr('src', `profileImg/${handle.id}${ext}`);
+
+        fs.writeFile(`./data/templates/${handle.id}`, $.html(), () => {
+          let dl = request(profileImage).pipe(fs.createWriteStream(`./data/profileImg/${handle.id}${ext}`));
+          this.update({template: 1, ext}, handle.id).then(() => {
+            dl.on('finish', () => {
+              cb();
+            });
+          });
         });
       });
     });
