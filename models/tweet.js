@@ -196,9 +196,11 @@ module.exports = {
   },
   getTweetTxt(id) {
     return new Promise((resolve, reject) => {
-      fs.readFile(`${__dirname}/../data/tweets/${id}`, 'utf8', (err, tweet) => {
-        fs.readFile(`${__dirname}/../data/timelineTweets/${id}`, 'utf8', (err, timeline) => {
-          resolve({tweet, timeline});
+      fs.stat(`${__dirname}/../data/tweets/${id}`, (err, info) => {
+        fs.readFile(`${__dirname}/../data/tweets/${id}`, 'utf8', (err, tweet) => {
+          fs.readFile(`${__dirname}/../data/timelineTweets/${id}`, 'utf8', (err, timeline) => {
+            resolve({tweet, timeline, info});
+          });
         });
       });
     });

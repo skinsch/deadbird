@@ -33,19 +33,19 @@ $(() => {
     return false;
   });
 
-  $.ui.autocomplete.prototype._renderItem = function (ul, item) {
-    if (item.label === `Add "${$('#deadbirdSearch').val()}" to database`) {
-      item.label = `<strong>${item.label}</strong>`;
-      item.value = $('#deadbirdSearch').val()
-    }
-    console.log(item);
-
-    return $("<li></li>")
-      .data("item.autocomplete", item)
-      .append(`<div id="ui-id-2" tabindex="-1" class="ui-menu-item-wrapper">${item.label}</div>`)
-      .appendTo(ul);
-  };
   if (autocompleteUsers.length > 0) {
+    $.ui.autocomplete.prototype._renderItem = function (ul, item) {
+      if (item.label === `Add "${$('#deadbirdSearch').val()}" to database`) {
+        item.label = `<strong>${item.label}</strong>`;
+        item.value = $('#deadbirdSearch').val()
+      }
+
+      return $("<li></li>")
+        .data("item.autocomplete", item)
+        .append(`<div id="ui-id-2" tabindex="-1" class="ui-menu-item-wrapper">${item.label}</div>`)
+        .appendTo(ul);
+    };
+
     $( "#deadbirdSearch" ).autocomplete({
       source: function(request, response) {
         let users;
@@ -69,8 +69,6 @@ $(() => {
       submitSearch();
     }
   });
-
-  window.socket = io.connect(":" + port);
 
   function submitSearch() {
     window.location.href = `${base}${$('#deadbirdSearch').val()}`;
@@ -98,6 +96,8 @@ function updateDates() {
   });
 
   $('.js-short-timestamp').each((index, date) => {
-    $(date).html(moment(new Date($(date).data('time') * 1000)).fromNow());
+    let info = `Created: ${moment(new Date($(date).data('time') * 1000)).fromNow()} | Deleted: ~${moment(new Date($($(date).parent().parent().parent().parent().parent().parent()).data('deletetime'))).fromNow()}`;
+    $(date).html(info);
+    $(date).parent().attr('title', `Created: ${moment($(date).data('time') * 1000).format()}\n\nDeleted: ~${moment($($(date).parent().parent().parent().parent().parent().parent()).data('deletetime')).format()}`);
   });
 };

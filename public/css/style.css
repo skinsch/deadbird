@@ -10699,3 +10699,19 @@ textarea:focus::placeholder {
     margin-top: 25px;
     width: 50%;
 }
+
+.deadbirdStatTitle {
+    font-size: 18pt;
+    font-weight: 400;
+}
+
+.statlog textarea {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    height: 200px;
+    width: 100%;
+}
+
+.statlog p {
+    text-align: initial;
+}
