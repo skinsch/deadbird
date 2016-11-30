@@ -7,13 +7,13 @@
     <%
       }
 
-      if (originalUrl === '/' || originalUrl.match('stats')) {
+      if (originalUrl === '/' || originalUrl.match('page=') || originalUrl.match('stats')) {
     %>
         <li><a href="leaderboards">View Leaderboards</a></li><%-originalUrl.match('stats') ? "<br>" : " |"%>
     <%
       }
 
-      if (originalUrl === '/' || originalUrl.match('leaderboards')) {
+      if (originalUrl === '/' || originalUrl.match('page=') || originalUrl.match('leaderboards')) {
     %>
         <li><a href="stats">View Stats</a></li><br>
     <%

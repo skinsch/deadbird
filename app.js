@@ -95,7 +95,7 @@ function spawner(mode) {
         } else {
           data[mode] = {};
           data[mode].text = spawnedData.text;
-          data[mode].nextCycle = new Date().getTime() + settings.general.checkerRestInterval * 1000;
+          data[mode].nextCheck = new Date().getTime() + settings.general.checkerRestInterval * 1000;
         }
       } else if (mode === 'fetcher') {
         if (spawnedData.done === undefined) {
@@ -105,7 +105,7 @@ function spawner(mode) {
         } else {
           data[mode] = {};
           data[mode].text = spawnedData.text;
-          data[mode].nextCycle = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
+          data[mode].nextCheck = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
         }
       } else if (mode === 'template') {
         if (spawnedData.done === undefined) {
@@ -114,7 +114,7 @@ function spawner(mode) {
         } else {
           data[mode] = {};
           data[mode].text = spawnedData.text;
-          data[mode].nextCycle = new Date().getTime() + settings.general.templateRestInterval * 1000;
+          data[mode].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
         }
       }
     });
@@ -125,7 +125,12 @@ function spawner(mode) {
   });
 }
 
-checkerLoop();
+if (settings.general.retrieversEnabled) {
+  checkerLoop();
+  fetcherLoop();
+  templateLoop();
+}
+
 function checkerLoop() {
   spawner('checker').then(() => {
     setTimeout(() => {
@@ -134,7 +139,6 @@ function checkerLoop() {
   });
 }
 
-fetcherLoop();
 function fetcherLoop() {
   spawner('fetcher').then(() => {
     setTimeout(() => {
@@ -143,7 +147,6 @@ function fetcherLoop() {
   });
 }
 
-templateLoop();
 function templateLoop() {
   spawner('template').then(() => {
     setTimeout(() => {
@@ -151,7 +154,6 @@ function templateLoop() {
     }, settings.general.templateRestInterval * 1000);
   });
 }
-
 /////////////
 
 module.exports = {

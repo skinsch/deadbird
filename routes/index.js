@@ -80,7 +80,7 @@ function main() {
     // User doesn't exist - Add to db. This behavior will be more sophisticated in the future.
     }, err => {
       request(`https://twitter.com/${handle}`, (err, response, body) => {
-        if (response.statusCode !== 404) {
+        if (!err && response.statusCode !== 404) {
           Handle.add(handle).then(() => Handle.fetchTemplate(handle, () => {
             updateAutoComplete(() => {
               res.redirect(`/`);

@@ -59,9 +59,9 @@ function main() {
           if (tty) {
             charm.left(255);
             charm.erase('line');
-            charm.write(`${completed} / ${handles.length} | ${user.handle} | ${newTweets} new tweets added`)
+            charm.write(`${completed} / ${handles.length} | ${user.handle} | ${newTweets} new tweets | ${totalNewTweets} new tweets total`)
           } else {
-            process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}`, user: user.handle, text: `${newTweets} new tweets added`}));
+            process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}`, user: user.handle, text: `${newTweets} new tweets - ${totalNewTweets} new tweets total`}));
           }
           if (completed === handles.length && tty) {
             if (newTweets === 0) charm.erase('line');

@@ -6,8 +6,9 @@
     "baseURL": "",
     "rate": 0,
     "timeout": 0,
+    "retrieversEnabled": true,
     "fetcherRestInterval": 0,
-    "checkerRestInterval": 450,
+    "checkerRestInterval": 900,
     "templateRestInterval": 86400,
     "socket": 8080
   },
