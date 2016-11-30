@@ -1,6 +1,5 @@
 const fs       = require('fs');
 const cheerio  = require('cheerio');
-const request  = require('request');
 const utils    = require('./utils');
 const db       = require('./models/db');
 const Handle   = require('./models/handle');

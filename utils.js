@@ -32,7 +32,8 @@ module.exports = {
   tweetExists(handle, id, cb) {
     try {
       request.head(`https://twitter.com/${handle}/status/${id}`, {
-        timeout: settings.general.timeout
+        timeout: settings.general.timeout,
+        gzip: true
       }, (err, response) => {
         // If error reaching page, just assume it exists
         if (err) return cb("fail");
@@ -51,7 +52,8 @@ module.exports = {
   tweetExistsB(handle, id, timeout, cb) {
     try {
       request.head(`https://twitter.com/${handle}/status/${id}`, {
-        timeout: Number(timeout)
+        timeout: Number(timeout),
+        gzip: true
       }, (err, response) => {
         // If error reaching page, just assume it exists
         if (err) return cb("fail");

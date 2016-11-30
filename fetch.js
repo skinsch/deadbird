@@ -103,14 +103,14 @@ function main() {
 }
 
 function tweetExists(handle, id, cb) {
-  request(`https://twitter.com/${handle}/status/${id}`, (err, response, body) => {
+  request({url: `https://twitter.com/${handle}/status/${id}`, gzip: true}, (err, response, body) => {
     cb(response.statusCode === 200);
   });
 }
 
 function getTweets(user, cb) {
   let $;
-  request("https://twitter.com/" + user.handle, (err, response, body) => {
+  request({url: "https://twitter.com/" + user.handle, gzip: true}, (err, response, body) => {
     if (body === undefined || err) return cb([]);
     $ = cheerio.load(body);
 
