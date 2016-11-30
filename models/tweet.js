@@ -236,7 +236,7 @@ module.exports = {
           async.eachLimit(tweets, 1, (tweet, cb) => {
             this.getTweetTxt(tweet.tweetid).then(tweet => {
               htmlTweets += `
-              <li class="js-stream-item stream-item stream-item" data-item-type="tweet">
+              <li class="js-stream-item stream-item stream-item" data-item-type="tweet" data-deleteTime="${tweet.info.birthtime}">
                 ${tweet.timeline}
               </li>`;
               cb();
