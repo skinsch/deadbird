@@ -119,39 +119,54 @@ function spawner(mode) {
       }
     });
 
-    spawned.on('close', code => {
-      resolve();
+    spawned.on('exit', err => {
+      if (err === null) resolve(true);
+      else resolve(false);
     });
   });
 }
 
 if (settings.general.retrieversEnabled) {
-  checkerLoop();
-  fetcherLoop();
-  templateLoop();
+  spawner('template').then(() => {
+    checkerLoop();
+    fetcherLoop();
+
+    setTimeout(() => {
+      templateLoop();
+    }, settings.general.templateRestInterval * 1000);
+  });
 }
 
 function checkerLoop() {
-  spawner('checker').then(() => {
-    setTimeout(() => {
-      checkerLoop();
-    }, settings.general.checkerRestInterval * 1000);
+  spawner('checker').then(fail => {
+    if (fail) checkerLoop();
+    else {
+      setTimeout(() => {
+        checkerLoop();
+      }, settings.general.checkerRestInterval * 1000);
+    }
   });
 }
 
 function fetcherLoop() {
-  spawner('fetcher').then(() => {
-    setTimeout(() => {
-      fetcherLoop();
-    }, settings.general.fetcherRestInterval * 1000);
+  spawner('fetcher').then(fail => {
+    if (fail) fetcherLoop();
+    else {
+      setTimeout(() => {
+        fetcherLoop();
+      }, settings.general.fetcherRestInterval * 1000);
+    }
   });
 }
 
 function templateLoop() {
-  spawner('template').then(() => {
-    setTimeout(() => {
-      templateLoop();
-    }, settings.general.templateRestInterval * 1000);
+  spawner('template').then(fail => {
+    if (fail) templateLoop();
+    else {
+      setTimeout(() => {
+        templateLoop();
+      }, settings.general.templateRestInterval * 1000);
+    }
   });
 }
 /////////////
