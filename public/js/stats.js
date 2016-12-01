@@ -33,7 +33,7 @@ $(() => {
             text: 'Tweets for last 30 days'
         },
         xAxis: {
-            categories: stats.map((val, ind) => moment(val.date).format('MM/DD')).reverse()
+            categories: stats.map((val, ind)=>moment(val.date.slice(0, 0-14)).format('MM/DD')).reverse()
         },
         yAxis: {
             labels: {

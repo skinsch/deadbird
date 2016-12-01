@@ -10,6 +10,7 @@ const compress     = require('compression');
 const debug        = require('debug')('Deadbird:server');
 const http         = require('http');
 const async        = require('async');
+const schedule     = require('node-schedule');
 
 const db = require('./models/db');
 
@@ -177,10 +178,9 @@ function templateLoop() {
 // Stats cacher //
 
 updateStats();
-
-setInterval(() => {
+schedule.scheduleJob('0 0 0 * * *', () => {
   updateStats();
-}, 86400000);
+});
 
 function updateStats() {
   getStats().then(stats => {
