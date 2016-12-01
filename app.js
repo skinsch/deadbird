@@ -9,8 +9,9 @@ const bodyParser   = require('body-parser');
 const compress     = require('compression');
 const debug        = require('debug')('Deadbird:server');
 const http         = require('http');
+const async        = require('async');
 
-const db = require('../models/db');
+const db = require('./models/db');
 
 const settings = require('./utils').settings;
 

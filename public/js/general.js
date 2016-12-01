@@ -96,7 +96,7 @@ function updateDates() {
   });
 
   $('.js-short-timestamp').each((index, date) => {
-    let info = `Created: ${moment(new Date($(date).data('time') * 1000)).fromNow()} | Deleted: ~${moment(new Date($($(date).parent().parent().parent().parent().parent().parent()).data('deletetime'))).fromNow()}`;
+    let info = `Created:&nbsp;${moment(new Date($(date).data('time') * 1000)).fromNow()}&nbsp;|&nbsp;Deleted:&nbsp;~${moment(new Date($($(date).parent().parent().parent().parent().parent().parent()).data('deletetime'))).fromNow()}`;
     $(date).html(info);
     $(date).parent().attr('title', `Created: ${moment($(date).data('time') * 1000).format()}\n\nDeleted: ~${moment($($(date).parent().parent().parent().parent().parent().parent()).data('deletetime')).format()}`);
   });
