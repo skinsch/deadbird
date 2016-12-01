@@ -8,10 +8,12 @@
 </head>
 <body>
   <socket hidden><%-socket%></socket>
+  <stats hidden><%-stats%></stats>
   <a href=""><h1 class="deadbirdtitle"><img id='deadbirdLogo' src='img/deadbird.svg'>Deadbird</h1></a>
   <% include navbar %>
   <div id="deadbirdMain">
     <h1>Stats</h1><br>
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0px auto 25px"></div>
     <div class="row">
       <div class="col-xs-6 col-md-4 statlog">
         <h3 class='deadbirdStatTitle'>Fetcher</h3>
@@ -33,6 +35,7 @@
   <script src="js/socket.io.min.js"></script>
   <script src="js/moment.min.js"></script>
   <script src="js/jquery.js"></script>
+  <script src="js/highcharts.js"></script>
   <script src="js/general.js"></script>
   <script src="js/stats.js"></script>
 </body>

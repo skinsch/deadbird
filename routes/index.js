@@ -6,6 +6,7 @@ const router   = express.Router();
 const request  = require('request');
 const settings = require('../utils').settings;
 
+const db     = require('../models/db');
 const Tweet  = require('../models/tweet');
 const Handle = require('../models/handle');
 
@@ -63,7 +64,9 @@ function main() {
   });
 
   router.get('/stats', (req, res, next) => {
-    res.render('stats', {autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+    getStats().then(stats => {
+      res.render('stats', {stats: JSON.stringify(stats), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+    });
   });
 
   router.get('/profileImg/:img', function(req, res, next) {
@@ -112,5 +115,35 @@ function updateAutoComplete(cb) {
     cb();
   });
 }
+
+function getStats() {
+  return new Promise((resolve, reject) => {
+    let data = [];
+    let count = 1;
+
+    async.whilst(
+      () => count <= 30,
+      cb => {
+        daysAgo(count).then(row => {
+          count++;
+          data.push(row[0]);
+          cb(null)
+        });
+      },
+      () => {
+        resolve(data);
+      }
+    );
+  });
+
+  function daysAgo(days) {
+    return new Promise((resolve, reject) => {
+      db.connection.query(`SELECT (SELECT DATE_SUB(curdate(), INTERVAL ${days} DAY)) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= DATE_SUB(curdate(), INTERVAL ${days} DAY) AND deletedate < DATE_SUB(curdate(), INTERVAL ${days-1} DAY)) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= (SELECT CURDATE() - INTERVAL ${days} DAY) AND date < (SELECT CURDATE() - INTERVAL ${days-1} DAY)) AS added`, (err, data) => {
+        resolve(data);
+      });
+    });
+  }
+}
+
 
 module.exports = router;

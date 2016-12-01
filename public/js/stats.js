@@ -1,5 +1,7 @@
 $(() => {
   window.socket = io.connect(":" + $('socket').html());
+  let stats = JSON.parse($('stats').html());
+
   socket.on('status', data => {
     data = JSON.parse(data);
     if (data.fetcher.nextCheck) {
@@ -16,4 +18,48 @@ $(() => {
     $('#templateLog').val(JSON.stringify(data.template, null, 1));
   });
   setInterval(() => socket.emit('getStatus'), 1000);
+
+  $(function () {
+    Highcharts.chart('container', {
+        chart: {
+            type: 'column'
+        },
+        plotOptions: {
+            series: {
+                stacking: 'normal'
+            }
+        },
+        title: {
+            text: 'Tweets for last 30 days'
+        },
+        xAxis: {
+            categories: stats.map((val, ind) => moment(val.date).format('MM/DD')).reverse()
+        },
+        yAxis: {
+            labels: {
+                formatter: function() {
+                    return Math.abs(this.value);
+                }
+            }
+        },
+        tooltip: {
+            formatter: function() {
+                return this.x + '<br/><span style="color:'+ this.points[0].series.color +'">\u25CF</span> ' + this.points[0].series.name + ': <b>' + Math.abs(this.points[0].y) + '</b>' + '<br/><span style="color:'+ this.points[1].series.color +'">\u25CF</span> ' + this.points[1].series.name + ': <b>' + Math.abs(this.points[1].y) + '</b>';
+            },
+            shared: true
+        },
+        credits: {
+            enabled: false
+        },
+        series: [{
+            name: 'Created',
+            data: stats.map((val, ind) => val.added).reverse(),
+            color: "#19C205"
+        }, {
+            name: 'Deleted',
+            data: stats.map((val, ind) => val.deleted).reverse(),
+            color: "#BE0A07"
+        }]
+    });
+});
 });
