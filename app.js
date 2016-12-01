@@ -10,6 +10,8 @@ const compress     = require('compression');
 const debug        = require('debug')('Deadbird:server');
 const http         = require('http');
 
+const db = require('../models/db');
+
 const settings = require('./utils').settings;
 
 const io = require('socket.io')(settings.general.socket);
@@ -65,7 +67,7 @@ app.use((err, req, res, next) => {
   res.render('error');
 });
 
-// Spawners
+// Spawners //
 function spawner(mode) {
   let scripts = {fetcher: 'fetch', checker: 'check', template: 'getTemplate'};
 
@@ -169,6 +171,51 @@ function templateLoop() {
     }
   });
 }
+/////////////
+
+// Stats cacher //
+
+updateStats();
+
+setInterval(() => {
+  updateStats();
+}, 86400000);
+
+function updateStats() {
+  getStats().then(stats => {
+    app.set('stats', JSON.stringify(stats));
+  });
+}
+
+function getStats() {
+  return new Promise((resolve, reject) => {
+    let data = [];
+    let count = 1;
+
+    async.whilst(
+      () => count <= 30,
+      cb => {
+        daysAgo(count).then(row => {
+          count++;
+          data.push(row[0]);
+          cb(null)
+        });
+      },
+      () => {
+        resolve(data);
+      }
+    );
+  });
+
+  function daysAgo(days) {
+    return new Promise((resolve, reject) => {
+      db.connection.query(`SELECT (SELECT DATE_SUB(curdate(), INTERVAL ${days} DAY)) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= DATE_SUB(curdate(), INTERVAL ${days} DAY) AND deletedate < DATE_SUB(curdate(), INTERVAL ${days-1} DAY)) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= (SELECT CURDATE() - INTERVAL ${days} DAY) AND date < (SELECT CURDATE() - INTERVAL ${days-1} DAY)) AS added`, (err, data) => {
+        resolve(data);
+      });
+    });
+  }
+}
+
 /////////////
 
 module.exports = {

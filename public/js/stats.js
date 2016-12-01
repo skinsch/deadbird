@@ -57,7 +57,7 @@ $(() => {
             color: "#19C205"
         }, {
             name: 'Deleted',
-            data: stats.map((val, ind) => val.deleted).reverse(),
+            data: stats.map((val, ind) => -val.deleted).reverse(),
             color: "#BE0A07"
         }]
     });
