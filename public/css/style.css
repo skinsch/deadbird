@@ -10691,6 +10691,7 @@ textarea:focus::placeholder {
     margin: auto;
     width: 75%;
     text-align: center;
+    margin-bottom: 50px;
 }
 
 #leaderboard {
