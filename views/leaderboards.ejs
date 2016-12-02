@@ -19,18 +19,18 @@
 %>
 <html>
 <head>
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/jquery-ui.min.css">
-  <link rel="stylesheet" href="css/dataTables.bootstrap.min.css">
-  <link rel="icon" type="image/png" href="img/favicon.png" sizes="196x196">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/jquery-ui.min.css">
+  <link rel="stylesheet" href="/css/dataTables.bootstrap.min.css">
+  <link rel="icon" type="image/png" href="/img/favicon.png" sizes="196x196">
   <base href="<%=basehref%>">
   <title>Deadbird :: Leaderboards</title>
 </head>
 <body>
   <autocomplete hidden><%-autocomplete%></autocomplete>
   <socket hidden><%-socket%></socket>
-  <a href=""><h1 class="deadbirdtitle"><img id='deadbirdLogo' src='img/deadbird.svg'>Deadbird</h1></a>
+  <a href=""><h1 class="deadbirdtitle"><img id='deadbirdLogo' src='/img/deadbird.svg'>Deadbird</h1></a>
   <% include navbar %>
   <div id="deadbirdMain">
     <h1>Leaderboards</h1><br>
@@ -58,13 +58,13 @@
       </tbody>
     </table>
   </div>
-  <script src="js/socket.io.min.js"></script>
-  <script src="js/moment.min.js"></script>
-  <script src="js/jquery.js"></script>
-  <script src="js/general.js"></script>
-  <script src="js/leaderboards.js"></script>
-  <script src="js/jquery-ui.min.js"></script>
-  <script src="js/jquery.dataTables.min.js"></script>
-  <script src="js/dataTables.bootstrap.min.js"></script>
+  <script src="/js/socket.io.min.js"></script>
+  <script src="/js/moment.min.js"></script>
+  <script src="/js/jquery.js"></script>
+  <script src="/js/general.js"></script>
+  <script src="/js/leaderboards.js"></script>
+  <script src="/js/jquery-ui.min.js"></script>
+  <script src="/js/jquery.dataTables.min.js"></script>
+  <script src="/js/dataTables.bootstrap.min.js"></script>
 </body>
 </html>

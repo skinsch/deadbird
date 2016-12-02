@@ -178,23 +178,24 @@ function templateLoop() {
 // Stats cacher //
 
 updateStats();
-schedule.scheduleJob('0 0 0 * * *', () => {
+schedule.scheduleJob('0 */15 * * * *', () => {
   updateStats();
 });
 
 function updateStats() {
   getStats().then(stats => {
     app.set('stats', JSON.stringify(stats));
+    app.set('statUpdate', new Date().getTime());
   });
 }
 
 function getStats() {
   return new Promise((resolve, reject) => {
     let data = [];
-    let count = 1;
+    let count = 0;
 
     async.whilst(
-      () => count <= 30,
+      () => count < 30,
       cb => {
         daysAgo(count).then(row => {
           count++;
@@ -210,7 +211,12 @@ function getStats() {
 
   function daysAgo(days) {
     return new Promise((resolve, reject) => {
-      db.connection.query(`SELECT (SELECT DATE_SUB(curdate(), INTERVAL ${days} DAY)) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= DATE_SUB(curdate(), INTERVAL ${days} DAY) AND deletedate < DATE_SUB(curdate(), INTERVAL ${days-1} DAY)) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= (SELECT CURDATE() - INTERVAL ${days} DAY) AND date < (SELECT CURDATE() - INTERVAL ${days-1} DAY)) AS added`, (err, data) => {
+      if (days === 0) {
+        query = `SELECT (SELECT curdate()) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= curdate()) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= curdate()) AS added`;
+      } else {
+        query = `SELECT (SELECT DATE_SUB(curdate(), INTERVAL ${days} DAY)) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= DATE_SUB(curdate(), INTERVAL ${days} DAY) AND deletedate < DATE_SUB(curdate(), INTERVAL ${days-1} DAY)) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= (SELECT CURDATE() - INTERVAL ${days} DAY) AND date < (SELECT CURDATE() - INTERVAL ${days-1} DAY)) AS added`;
+      }
+      db.connection.query(query, (err, data) => {
         resolve(data);
       });
     });

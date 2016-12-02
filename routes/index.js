@@ -63,7 +63,15 @@ function main() {
   });
 
   router.get('/stats', (req, res, next) => {
-    res.render('stats', {stats: req.app.get('stats'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+    res.render('stats', {stats: req.app.get('stats'), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+  });
+
+  router.get('/stats/:handle', (req, res, next) => {
+    Handle.getCond({handle: String(req.params.handle)}).then(handle => {
+      if (handle === null) return res.redirect('/');
+
+      res.render('userStats', {stats: req.app.get('stats'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+    });
   });
 
   router.get('/profileImg/:img', function(req, res, next) {

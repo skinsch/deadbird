@@ -3,19 +3,19 @@
     <%
       if (originalUrl.match('leaderboards') || originalUrl.match('stats')) {
     %>
-        <li><a href="">View Stream</a></li> |
+        <li><a href="/">View Stream</a></li> |
     <%
       }
 
       if (originalUrl === '/' || originalUrl.match('page=') || originalUrl.match('stats')) {
     %>
-        <li><a href="leaderboards">View Leaderboards</a></li><%-originalUrl.match('stats') ? "<br>" : " |"%>
+        <li><a href="/leaderboards">View Leaderboards</a></li><%-originalUrl.match('stats') ? "<br>" : " |"%>
     <%
       }
 
       if (originalUrl === '/' || originalUrl.match('page=') || originalUrl.match('leaderboards')) {
     %>
-        <li><a href="stats">View Stats</a></li><br>
+        <li><a href="/stats">View Stats</a></li><br>
     <%
       }
     %>

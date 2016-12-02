@@ -1,6 +1,7 @@
 $(() => {
   window.socket = io.connect(":" + $('socket').html());
   let stats = JSON.parse($('stats').html());
+  let statUpdate = $('statUpdate').html();
 
   socket.on('status', data => {
     data = JSON.parse(data);
@@ -18,7 +19,6 @@ $(() => {
     $('#templateLog').val(JSON.stringify(data.template, null, 1));
   });
   setInterval(() => socket.emit('getStatus'), 1000);
-
   $(function () {
     Highcharts.chart('container', {
         chart: {
@@ -31,6 +31,9 @@ $(() => {
         },
         title: {
             text: 'Tweets for last 30 days'
+        },
+        subtitle: {
+            text: `Last updated ${moment.duration((new Date().getTime() - Number(statUpdate))).minutes()} minutes ago`
         },
         xAxis: {
             categories: stats.map((val, ind)=>moment(val.date.slice(0, 0-14)).format('MM/DD')).reverse()
