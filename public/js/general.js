@@ -96,8 +96,10 @@ function updateDates() {
   });
 
   $('.js-short-timestamp').each((index, date) => {
-    let info = `Created:&nbsp;${moment(new Date($(date).data('time') * 1000)).fromNow()}&nbsp;|&nbsp;Deleted:&nbsp;~${moment(new Date($($(date).parent().parent().parent().parent().parent().parent()).data('deletetime'))).fromNow()}`;
-    $(date).html(info);
-    $(date).parent().attr('title', `Created: ${moment($(date).data('time') * 1000).format()}\n\nDeleted: ~${moment($($(date).parent().parent().parent().parent().parent().parent()).data('deletetime')).format()}`);
+    if ($($(date).closest('li')).data('deletetime') !== undefined) {
+      let info = `Created:&nbsp;${moment(new Date($(date).data('time') * 1000)).fromNow()}&nbsp;|&nbsp;Deleted:&nbsp;~${moment(new Date($($(date).closest('li')).data('deletetime'))).fromNow()}`;
+      $(date).html(info);
+      $(date).parent().attr('title', `Created: ${moment($(date).data('time') * 1000).format()}\n\nDeleted: ~${moment(new Date($($(date).closest('li')).data('deletetime'))).format()}`);
+    }
   });
 };
