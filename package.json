@@ -25,5 +25,15 @@
     "request": "^2.78.0",
     "serve-favicon": "~2.3.0",
     "socket.io": "^1.7.1"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-ejsmin": "^0.0.1",
+    "gulp-exit": "^0.0.2",
+    "gulp-mocha": "^3.0.1",
+    "gulp-uglifyjs": "^0.6.2",
+    "gulp-util": "^3.0.7"
   }
 }

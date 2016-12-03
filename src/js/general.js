@@ -70,7 +70,7 @@ $(() => {
     }
   });
 
-  let text = $('message').html();
+  let text = $('message').html() || "";
   let type;
 
   if (text !== "") {

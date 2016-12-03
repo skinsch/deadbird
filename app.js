@@ -1,4 +1,4 @@
-var flash = require('connect-flash');
+const flash        = require('connect-flash');
 const express      = require('express');
 const path         = require('path');
 const spawn        = require('child_process').spawn;
@@ -13,7 +13,6 @@ const http         = require('http');
 const async        = require('async');
 const schedule     = require('node-schedule');
 const session      = require('express-session');
-
 
 const db = require('./models/db');
 
@@ -34,7 +33,7 @@ const app    = express();
 const server = http.createServer(app);
 
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, '.viewsMin/pages'));
 app.set('view engine', 'ejs');
 app.set('port', settings.general.port);
 

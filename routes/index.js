@@ -53,26 +53,26 @@ function main() {
           cb();
         });
       }, () => {
-        res.render('stream', {messages, autocomplete, socket, basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets});
+        res.render('stream', {title: "Home", messages, autocomplete, socket, basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets});
       });
     });
   });
 
   router.get('/leaderboards', (req, res, next) => {
     Handle.getAll('deleted').then(handles => {
-      res.render('leaderboards', {messages, autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
+      res.render('leaderboards', {title: "Leaderboards", messages, autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
     });
   });
 
   router.get('/stats', (req, res, next) => {
-    res.render('stats', {messages, stats: req.app.get('stats'), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+    res.render('stats', {title: "Stats", messages, stats: req.app.get('stats'), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
   });
 
   router.get('/stats/:handle', (req, res, next) => {
     Handle.getCond({handle: String(req.params.handle)}).then(handle => {
       if (handle === null) return res.redirect('/');
 
-      res.render('userStats', {messages, stats: req.app.get('stats'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+      res.render('userStats', {title: "User Stats", messages, stats: req.app.get('stats'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
     });
   });
 

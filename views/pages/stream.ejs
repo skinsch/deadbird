@@ -1,19 +1,13 @@
 <html>
 <head>
-  <link rel="stylesheet" href="/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/jquery-ui.min.css">
-  <link rel="icon" type="image/png" href="/img/favicon.png" sizes="196x196">
-  <base href="<%=basehref%>">
-  <title>Deadbird :: Home</title>
-  <message hidden><%=messages%></message>
+  <% include ../snippets/header %>
 </head>
 <body>
   <autocomplete hidden><%-autocomplete%></autocomplete>
   <socket hidden><%-socket%></socket>
   <a href=""><h1 class="deadbirdtitle"><img id='deadbirdLogo' src='/img/deadbird.svg'>Deadbird</h1></a>
-  <% include navbar %>
-  <% include pagination %>
+  <% include ../snippets/navbar %>
+  <% include ../snippets/pagination %>
   <div role="main" aria-labelledby="content-main-heading" class="content-main top-timeline-tweetbox" id="timeline">
     <div class="stream-container conversations-enabled " data-max-position="796955872979251200" data-min-position="796868124477968384">
     </div>
@@ -30,12 +24,7 @@
       </ol>
     </div>
   </div>
-  <% include googleAnalytics %>
-  <script src="/js/socket.io.min.js"></script>
-  <script src="/js/moment.min.js"></script>
-  <script src="/js/jquery.js"></script>
-  <script src="/js/noty/packaged/jquery.noty.packaged.min.js"></script>
-  <script src="/js/general.js"></script>
-  <script src="/js/jquery-ui.min.js"></script>
+  <% include ../snippets/googleAnalytics %>
+  <% include ../snippets/footer %>
 </body>
 </html>

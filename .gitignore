@@ -6,3 +6,4 @@ data/timelineTweets/*
 data/templates/*
 data/profileImg/*
 npm-debug.log
+public/js/*

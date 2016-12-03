@@ -3,13 +3,13 @@
     <%
       if (originalUrl.match('leaderboards') || originalUrl.match('stats')) {
     %>
-        <li><a href="/">View Stream</a></li> |
+        <li><a href="/">View Stream</a></li>&nbsp;|&nbsp;
     <%
       }
 
       if (originalUrl === '/' || originalUrl.match('page=') || originalUrl.match('stats')) {
     %>
-        <li><a href="/leaderboards">View Leaderboards</a></li><%-originalUrl.match('stats') ? "<br>" : " |"%>
+        <li><a href="/leaderboards">View Leaderboards</a></li><%-originalUrl.match('stats') ? "<br>" : "&nbsp;|&nbsp;"%>
     <%
       }
 
