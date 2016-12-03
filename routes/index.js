@@ -10,7 +10,7 @@ const settings = utils.settings;
 const Tweet  = require('../models/tweet');
 const Handle = require('../models/handle');
 
-let originalUrl, autocomplete, socket;
+let originalUrl, autocomplete, socket, messages;
 
 // Cache the handles list for autocomplete
 async.parallel([
@@ -28,6 +28,7 @@ function main() {
 
   router.all('*', (req, res, next) => {
     originalUrl = req.app.get('originalUrl');
+    messages = req.app.get('messages');
     next();
   });
 
@@ -52,26 +53,26 @@ function main() {
           cb();
         });
       }, () => {
-        res.render('stream', { autocomplete, socket, basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets });
+        res.render('stream', {messages, autocomplete, socket, basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets});
       });
     });
   });
 
   router.get('/leaderboards', (req, res, next) => {
     Handle.getAll('deleted').then(handles => {
-      res.render('leaderboards', {autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
+      res.render('leaderboards', {messages, autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
     });
   });
 
   router.get('/stats', (req, res, next) => {
-    res.render('stats', {stats: req.app.get('stats'), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+    res.render('stats', {messages, stats: req.app.get('stats'), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
   });
 
   router.get('/stats/:handle', (req, res, next) => {
     Handle.getCond({handle: String(req.params.handle)}).then(handle => {
       if (handle === null) return res.redirect('/');
 
-      res.render('userStats', {stats: req.app.get('stats'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+      res.render('userStats', {messages, stats: req.app.get('stats'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
     });
   });
 
@@ -92,6 +93,7 @@ function main() {
         request(`https://twitter.com/${handle}`, (err, response, body) => {
           Handle.add(handle).then(() => Handle.fetchTemplate(handle, () => {
             updateAutoComplete(() => {
+              req.flash('info', `${handle} was added successfully!`);
               res.redirect(`/`);
             });
           }));

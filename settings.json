@@ -21,5 +21,9 @@
       "database": "deadbird",
       "keepAliveInterval": 5000
     }
+  },
+  "session": {
+    "key": "Deadbird",
+    "secret": "SUPERSEKRETMESSAGE123"
   }
 }

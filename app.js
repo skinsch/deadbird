@@ -1,3 +1,4 @@
+var flash = require('connect-flash');
 const express      = require('express');
 const path         = require('path');
 const spawn        = require('child_process').spawn;
@@ -11,6 +12,8 @@ const debug        = require('debug')('Deadbird:server');
 const http         = require('http');
 const async        = require('async');
 const schedule     = require('node-schedule');
+const session      = require('express-session');
+
 
 const db = require('./models/db');
 
@@ -35,17 +38,44 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.set('port', settings.general.port);
 
-// uncomment after placing your favicon in /public
 app.use(favicon(path.join(__dirname, 'public', 'img', 'favicon.png')));
 app.use(compress());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Session
+app.use(cookieParser('keyboard cat'));
+app.use(session({
+  key: settings.session.key,
+  secret: settings.session.secret,
+  cookie: {
+    path: '/',
+  },
+  resave: false,
+  saveUninitialized: false
+}));
+app.use(flash());
 
 app.use('*', (req, res, next) => {
   app.set('originalUrl', req.originalUrl);
+
+  let info    = req.flash('info');
+  let warning = req.flash('warning');
+  let token   = req.flash('token');
+
+  if (info.length) {
+    messages = ["info", info];
+  } else if (warning.length) {
+    messages = ["warning", warning];
+  } else if (token.length) {
+    messages = ["token", token];
+  } else {
+    messages = "";
+  }
+
+  app.set('messages', messages);
   next();
 });
 
