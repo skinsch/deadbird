@@ -1,3 +1,5 @@
+const cheerio  = require('cheerio');
+const Promise  = require('bluebird');
 const moment   = require('moment');
 const _        = require('lodash');
 const request  = require('request');
@@ -68,5 +70,20 @@ module.exports = {
     } catch (e) {
       cb(true);
     }
+  },
+  validUser(handle, cb) {
+    return new Promise((resolve, reject) => {
+      let $;
+      request({url: "https://twitter.com/" + handle, gzip: true}, (err, response, body) => {
+        if (body === undefined || err) return reject();
+        $ = cheerio.load(body);
+
+        if ([undefined, null].indexOf($('.ProfileHeaderCard-joinDateText').html()) === -1) {
+          resolve();
+        } else {
+          reject();
+        }
+      });
+    });
   }
 };

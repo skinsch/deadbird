@@ -4,7 +4,8 @@ const express  = require('express');
 const cheerio  = require('cheerio');
 const router   = express.Router();
 const request  = require('request');
-const settings = require('../utils').settings;
+const utils    = require('../utils');
+const settings = utils.settings;
 
 const Tweet  = require('../models/tweet');
 const Handle = require('../models/handle');
@@ -75,11 +76,11 @@ function main() {
   });
 
   router.get('/profileImg/:img', function(req, res, next) {
-    res.sendFile(path.resolve(__dirname + '/../data/profileImg/' + req.params.img));
+    res.sendFile(path.resolve(__dirname + '/../data/profileImg/' + String(req.params.img)));
   });
 
   router.get('/:handle', function(req, res, next) {
-    let handle = req.params.handle;
+    let handle = String(req.params.handle);
     if (handle === "favicon.ico") return;
 
     Tweet.genTimeline(handle).then(html => {
@@ -87,23 +88,23 @@ function main() {
 
     // User doesn't exist - Add to db. This behavior will be more sophisticated in the future.
     }, err => {
-      request(`https://twitter.com/${handle}`, (err, response, body) => {
-        if (!err && response.statusCode !== 404) {
+      utils.validUser(handle).then(() => {
+        request(`https://twitter.com/${handle}`, (err, response, body) => {
           Handle.add(handle).then(() => Handle.fetchTemplate(handle, () => {
             updateAutoComplete(() => {
               res.redirect(`/`);
             });
           }));
-        } else {
-          res.redirect('/');
-        }
+        });
+      }, () => {
+        res.redirect('/');
       });
     });
   });
 
   router.get('/:handle/status/:id', function(req, res, next) {
-    let handle = req.params.handle;
-    let id     = req.params.id;
+    let handle = String(req.params.handle);
+    let id     = String(req.params.id);
 
     Tweet.genTweetPage(handle, id).then(html => {
       res.send(html);
