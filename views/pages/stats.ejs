@@ -1,8 +1,19 @@
+<%
+  let total = {
+    total: 0,
+    deleted: 0
+  };
+  for (let i = 0; i < handles.length; i++) {
+    total.deleted += handles[i].deleted;
+    total.total += handles[i].total;
+  }
+%>
 <html>
 <head>
   <% include ../snippets/header %>
 </head>
 <body>
+  <autocomplete hidden><%-autocomplete%></autocomplete>
   <socket hidden><%-socket%></socket>
   <stats hidden><%-stats%></stats>
   <statUpdate hidden><%-statUpdate%></statUpdate>
@@ -10,6 +21,7 @@
   <% include ../snippets/navbar %>
   <div id="deadbirdMain">
     <h1>Stats</h1><br>
+    <p><%=total.deleted%> of <%=total.total%> (<%=Math.floor((total.deleted/total.total)*10000)/100 || 0%>%) tweets have been deleted</p><br>
     <div id="container" style="min-width: 310px; height: 400px; margin: 0px auto 25px"></div>
     <div class="row">
       <div class="col-xs-6 col-md-4 statlog">

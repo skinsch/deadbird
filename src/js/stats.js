@@ -1,4 +1,5 @@
 $(() => {
+  let base = $('base').attr('href');
   window.socket = io.connect(":" + $('socket').html());
 
   socket.on('status', data => {
@@ -18,7 +19,7 @@ $(() => {
   });
   setInterval(() => socket.emit('getStatus'), 1000);
   $(function () {
-    if (window.location.pathname === '/stats') {
+    if (window.location.href.slice(base.length-1).slice(0, 6) === '/stats') {
       let stats = JSON.parse($('stats').html() || "{}");
       let statUpdate = $('statUpdate').html();
       Highcharts.chart('container', {

@@ -65,14 +65,19 @@ function main() {
   });
 
   router.get('/stats', (req, res, next) => {
-    res.render('stats', {title: "Stats", messages, stats: req.app.get('stats'), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+    Handle.getAll('deleted').then(handles => {
+      res.render('stats', {title: "Stats", messages, stats: JSON.stringify(req.app.get('stats')['all']), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
+    });
   });
 
   router.get('/stats/:handle', (req, res, next) => {
     Handle.getCond({handle: String(req.params.handle)}).then(handle => {
-      if (handle === null) return res.redirect('/');
+      if (handle === null) {
+        req.flash('warning', `${String(req.params.handle)} is not in the database`);
+        return res.redirect('/stats');
+      }
 
-      res.render('userStats', {title: "User Stats", messages, stats: req.app.get('stats'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+      res.render('userStats', {title: `User Stats for ${handle.handle}`, handle: handle.handle, messages, stats: JSON.stringify(req.app.get('stats')[handle.id]), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
     });
   });
 
@@ -99,6 +104,7 @@ function main() {
           }));
         });
       }, () => {
+        req.flash('warning', `${handle} is not a valid Twitter user!`);
         res.redirect('/');
       });
     });
@@ -117,9 +123,9 @@ function main() {
 }
 
 function updateAutoComplete(cb) {
-  console.log('autocomplete is up to date!');
+  console.log('Autocomplete is up to date');
   Handle.getAll().then(data => {
-    autocomplete = JSON.stringify(data.map(item => item.handle));
+    autocomplete = JSON.stringify(data.map(item => item.handle.toLowerCase()));
     cb();
   });
 }

@@ -14,7 +14,8 @@ const async        = require('async');
 const schedule     = require('node-schedule');
 const session      = require('express-session');
 
-const db = require('./models/db');
+const db     = require('./models/db');
+const Handle = require('./models/handle');
 
 const settings = require('./utils').settings;
 
@@ -206,19 +207,37 @@ function templateLoop() {
 
 // Stats cacher //
 
-updateStats();
-schedule.scheduleJob('0 */15 * * * *', () => {
-  updateStats();
-});
-
-function updateStats() {
-  getStats().then(stats => {
-    app.set('stats', JSON.stringify(stats));
-    app.set('statUpdate', new Date().getTime());
+function initStats(cb) {
+  console.log("Caching initial stats...");
+  updateStats(() => {
+    console.log("Finished caching stats");
+    schedule.scheduleJob('0 */15 * * * *', () => {
+      updateStats();
+    });
+    cb();
   });
 }
 
-function getStats() {
+function updateStats(cb=()=>{}) {
+  let start = new Date().getTime();
+  let stats = {};
+  Handle.getAll().then(handles => {
+    handles.unshift(null);
+
+    async.each(handles, (handle, cb) => {
+      getStats(handle ? handle.id : null).then(stat => {
+        stats[handle ? handle.id : "all"] = stat;
+        cb();
+      });
+    }, () => {
+      app.set('stats', stats);
+      app.set('statUpdate', new Date().getTime());
+      cb();
+    });
+  });
+}
+
+function getStats(handle=null) {
   return new Promise((resolve, reject) => {
     let data = [];
     let count = 0;
@@ -226,7 +245,7 @@ function getStats() {
     async.whilst(
       () => count < 30,
       cb => {
-        daysAgo(count).then(row => {
+        daysAgo(count, handle).then(row => {
           count++;
           data.push(row[0]);
           cb(null)
@@ -238,12 +257,12 @@ function getStats() {
     );
   });
 
-  function daysAgo(days) {
+  function daysAgo(days, handle=null) {
     return new Promise((resolve, reject) => {
       if (days === 0) {
-        query = `SELECT (SELECT curdate()) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= curdate()) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= curdate()) AS added`;
+        query = `SELECT (SELECT curdate()) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= curdate()${handle ? " AND handle = " + handle : ""}) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= curdate()${handle ? " AND handle = " + handle : ""}) AS added`;
       } else {
-        query = `SELECT (SELECT DATE_SUB(curdate(), INTERVAL ${days} DAY)) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= DATE_SUB(curdate(), INTERVAL ${days} DAY) AND deletedate < DATE_SUB(curdate(), INTERVAL ${days-1} DAY)) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= (SELECT CURDATE() - INTERVAL ${days} DAY) AND date < (SELECT CURDATE() - INTERVAL ${days-1} DAY)) AS added`;
+        query = `SELECT (SELECT DATE_SUB(curdate(), INTERVAL ${days} DAY)) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= DATE_SUB(curdate(), INTERVAL ${days} DAY) AND deletedate < DATE_SUB(curdate(), INTERVAL ${days-1} DAY)${handle ? " AND handle = " + handle : ""}) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= (SELECT CURDATE() - INTERVAL ${days} DAY) AND date < (SELECT CURDATE() - INTERVAL ${days-1} DAY)${handle ? " AND handle = " + handle : ""}) AS added`;
       }
       db.connection.query(query, (err, data) => {
         resolve(data);
@@ -256,5 +275,6 @@ function getStats() {
 
 module.exports = {
   server,
-  app
+  app,
+  initStats
 };

@@ -46,10 +46,10 @@ $(() => {
         .appendTo(ul);
     };
 
-    $( "#deadbirdSearch" ).autocomplete({
+    $("#deadbirdSearch").autocomplete({
       source: function(request, response) {
         let users;
-        if ($('#deadbirdSearch').val().length <= 15 && autocompleteUsers.indexOf($('#deadbirdSearch').val()) === -1) {
+        if ($('#deadbirdSearch').val().length <= 15 && autocompleteUsers.indexOf($('#deadbirdSearch').val()) === -1 && window.location.pathname.slice(0, 6) !== '/stats') {
           users = autocompleteUsers.concat(`Add "${$('#deadbirdSearch').val()}" to database`);
         } else {
           users = autocompleteUsers;
@@ -96,7 +96,11 @@ $(() => {
   }
 
   function submitSearch() {
-    window.location.href = `${base}${$('#deadbirdSearch').val()}`;
+    if (window.location.pathname.slice(0, 6) === '/stats') {
+      window.location.href = `${base}stats/${$('#deadbirdSearch').val()}`;
+    } else {
+      window.location.href = `${base}${$('#deadbirdSearch').val()}`;
+    }
   }
 });
 
