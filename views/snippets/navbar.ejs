@@ -1,35 +1,24 @@
+<%
+  let nav = "";
+  let url = ['', 'leaderboards', 'stats', 'about'];
+  let parts = {
+    '': `<a href="/">Stream</a>`,
+    leaderboards: `<a href="/leaderboards">Leaderboards</a>`,
+    stats: `<a href="/stats">Stats</a>`,
+    about: `<a href="/about">About</a>`
+  };
+
+  nav += url.map(ind => {
+    if (originalUrl.slice(1) === ind) {
+      return `<li id="deadbirdSelected">${parts[ind]}</li>`;
+    } else {
+      return `<li>${parts[ind]}</li>`;
+    }
+  }).join(' | ').slice(0, -3);
+
+%>
 <div id="deadbirdNav">
   <ul>
-    <%
-      if (originalUrl.match('leaderboards') || originalUrl.match('stats')) {
-    %>
-        <li><a href="/">View Stream</a></li>&nbsp;|&nbsp;
-    <%
-      }
-
-      if (originalUrl === '/' || originalUrl.match('page=') || originalUrl.match('stats')) {
-    %>
-        <li><a href="/leaderboards">View Leaderboards</a></li><%-originalUrl.match('stats') ? "<br>" : "&nbsp;|&nbsp;"%>
-    <%
-      }
-
-      if (originalUrl === '/' || originalUrl.match('page=') || originalUrl.match('leaderboards')) {
-    %>
-        <li><a href="/stats">View Stats</a></li><br>
-    <%
-      }
-    %>
-    <br>
-    <%
-      if (originalUrl.match('stats')) {
-    %>
-        <li><input id="deadbirdSearch" type='text' placeholder='View specific user stats' autofocus></li>
-    <%
-      } else {
-    %>
-      <li><input id="deadbirdSearch" type='text' placeholder='View/Add Twitter User' autofocus></li>
-    <%
-      }
-    %>
+    <%-nav%>
   </ul>
 </div>
