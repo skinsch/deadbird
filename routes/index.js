@@ -70,6 +70,10 @@ function main() {
     });
   });
 
+  router.get('/about', (req, res, next) => {
+    res.render('about', {title: "About", messages, basehref: settings.general.basehref, originalUrl});
+  });
+
   router.get('/stats/:handle', (req, res, next) => {
     Handle.getCond({handle: String(req.params.handle)}).then(handle => {
       if (handle === null) {
