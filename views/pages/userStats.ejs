@@ -3,7 +3,12 @@
     total: 0,
     deleted: 0
   };
-  let countStats = JSON.parse(stats);
+  let countStats;
+  try {
+    countStats = JSON.parse(stats);
+  } catch(e) {
+    countStats = [];
+  }
   for (let i = 0; i < countStats.length; i++) {
     total.deleted += countStats[i].deleted;
     total.total += countStats[i].added + countStats[i].deleted;

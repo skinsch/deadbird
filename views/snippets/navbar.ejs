@@ -15,6 +15,7 @@
       return `<li>${parts[ind]}</li>`;
     }
   }).join(' | ').slice(0, -3);
+  nav += `<br><br><br><li><input id="deadbirdSearch" type='text' placeholder='${originalUrl.match('stats') ? "View specific user stats" : "View/Add Twitter User"}' autofocus></li>`;
 
 %>
 <div id="deadbirdNav">

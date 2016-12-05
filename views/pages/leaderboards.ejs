@@ -9,7 +9,7 @@
     total.total += handles[i].total;
     content.push(`
 <tr>
-  <td><a href="${handles[i].handle}">${handles[i].handle}</a></td>
+  <td><a href="${handles[i].handle}">${handles[i].handle}</a><a style="float: right" href="stats/${handles[i].handle}"><span class="glyphicon glyphicon-signal" style="color: #19C205"></span></a></td>
   <td>${handles[i].deleted}</td>
   <td>${handles[i].total}</td>
   <td>${Math.floor((handles[i].deleted/handles[i].total)*10000)/100 || 0}%</td>
