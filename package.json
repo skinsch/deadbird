@@ -7,6 +7,7 @@
   },
   "dependencies": {
     "async": "^2.1.2",
+    "babel-preset-es2015-without-strict": "^0.0.4",
     "bluebird": "^3.4.6",
     "body-parser": "~1.15.2",
     "charm": "^1.0.1",
