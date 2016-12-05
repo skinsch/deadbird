@@ -1,11 +1,12 @@
 <%
   let nav = "";
-  let url = ['', 'leaderboards', 'stats', 'about'];
+  let url = ['', 'leaderboards', 'stats', 'about', '_viewongithub'];
   let parts = {
     '': `<a href="/">Stream</a>`,
     leaderboards: `<a href="/leaderboards">Leaderboards</a>`,
     stats: `<a href="/stats">Stats</a>`,
-    about: `<a href="/about">About</a>`
+    about: `<a href="/about">About</a>`,
+    _viewongithub: `<a href="https://github.com/keitharm/deadbird">View on Github</a>`
   };
 
   nav += url.map(ind => {

@@ -71,7 +71,7 @@ function main() {
   });
 
   router.get('/about', (req, res, next) => {
-    res.render('about', {title: "About", messages, basehref: settings.general.basehref, originalUrl});
+    res.render('about', {title: "About", socket, messages, basehref: settings.general.basehref, originalUrl});
   });
 
   router.get('/stats/:handle', (req, res, next) => {
@@ -108,8 +108,10 @@ function main() {
           }));
         });
       }, () => {
-        req.flash('warning', `${handle} is not a valid Twitter user!`);
-        res.redirect('/');
+        if (handle !== "socket.io") {
+          req.flash('warning', `${handle} is not a valid Twitter user!`);
+          res.redirect('/');
+        }
       });
     });
   });
