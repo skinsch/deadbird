@@ -1,3 +1,5 @@
+const https = require('https');
+https.globalAgent.maxSockets = 150;
 const fs       = require('fs');
 const moment   = require('moment');
 const Promise  = require('bluebird');

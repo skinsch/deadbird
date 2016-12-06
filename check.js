@@ -1,3 +1,5 @@
+const https = require('https');
+https.globalAgent.maxSockets = 150;
 const async    = require('async');
 const moment   = require('moment');
 const utils    = require('./utils');
