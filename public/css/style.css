@@ -10722,3 +10722,7 @@ textarea:focus::placeholder {
     pointer-events: none;
     cursor: default;
 }
+
+a#deadbirdLink {
+    text-decoration: none !important;
+}
