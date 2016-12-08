@@ -75,9 +75,10 @@ function main() {
   });
 
   router.get('/stats/:handle', (req, res, next) => {
-    Handle.getCond({handle: String(req.params.handle)}).then(handle => {
+    let handleIn = String(req.params.handle.replace(/@/g, ''));
+    Handle.getCond({handle: handleIn}).then(handle => {
       if (handle === null) {
-        req.flash('warning', `${String(req.params.handle)} is not in the database`);
+        req.flash('warning', `${handleIn} is not in the database`);
         return res.redirect('/stats');
       }
 
@@ -90,7 +91,7 @@ function main() {
   });
 
   router.get('/:handle', function(req, res, next) {
-    let handle = String(req.params.handle);
+    let handle = String(req.params.handle.replace(/@/g, ''));
     let ip = req.headers['cf-connecting-ip'] ||
              req.headers['x-real-ip'] ||
              req.headers['x-forwarded-for'] ||
@@ -129,7 +130,7 @@ function main() {
   });
 
   router.get('/:handle/status/:id', function(req, res, next) {
-    let handle = String(req.params.handle);
+    let handle = String(req.params.handle.replace(/@/g, ''));
     let id     = String(req.params.id);
 
     Tweet.genTweetPage(handle, id).then(html => {
