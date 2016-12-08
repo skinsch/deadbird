@@ -129,7 +129,6 @@ function spawner(mode) {
         } else {
           data[mode] = {};
           data[mode].text = spawnedData.text;
-          data[mode].nextCheck = new Date().getTime() + settings.general.checkerRestInterval * 1000;
         }
       } else if (mode === 'fetcher') {
         if (spawnedData.done === undefined) {
@@ -139,7 +138,6 @@ function spawner(mode) {
         } else {
           data[mode] = {};
           data[mode].text = spawnedData.text;
-          data[mode].nextCheck = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
         }
       } else if (mode === 'template') {
         if (spawnedData.done === undefined) {
@@ -148,7 +146,6 @@ function spawner(mode) {
         } else {
           data[mode] = {};
           data[mode].text = spawnedData.text;
-          data[mode].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
         }
       }
     });
@@ -175,6 +172,7 @@ function checkerLoop() {
   spawner('checker').then(fail => {
     if (fail) checkerLoop();
     else {
+      data['checker'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
       setTimeout(() => {
         checkerLoop();
       }, settings.general.checkerRestInterval * 1000);
@@ -186,6 +184,7 @@ function fetcherLoop() {
   spawner('fetcher').then(fail => {
     if (fail) fetcherLoop();
     else {
+      data['fetcher'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
       setTimeout(() => {
         fetcherLoop();
       }, settings.general.fetcherRestInterval * 1000);
@@ -197,6 +196,7 @@ function templateLoop() {
   spawner('template').then(fail => {
     if (fail) templateLoop();
     else {
+      data['template'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
       setTimeout(() => {
         templateLoop();
       }, settings.general.templateRestInterval * 1000);
