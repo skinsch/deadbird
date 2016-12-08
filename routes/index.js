@@ -10,7 +10,7 @@ const settings = utils.settings;
 const Tweet  = require('../models/tweet');
 const Handle = require('../models/handle');
 
-let originalUrl, autocomplete, socket, messages;
+let originalUrl, autocomplete, socket, messages, ips = {};
 
 // Cache the handles list for autocomplete
 async.parallel([
@@ -28,7 +28,7 @@ function main() {
 
   router.all('*', (req, res, next) => {
     originalUrl = req.app.get('originalUrl');
-    messages = req.app.get('messages');
+    messages    = req.app.get('messages');
     next();
   });
 
@@ -91,6 +91,11 @@ function main() {
 
   router.get('/:handle', function(req, res, next) {
     let handle = String(req.params.handle);
+    let ip = req.headers['cf-connecting-ip'] ||
+             req.headers['x-real-ip'] ||
+             req.headers['x-forwarded-for'] ||
+             req.connection.remoteAddress;
+
     if (handle === "favicon.ico") return;
 
     Tweet.genTimeline(handle).then(html => {
@@ -98,10 +103,17 @@ function main() {
 
     // User doesn't exist - Add to db. This behavior will be more sophisticated in the future.
     }, err => {
+      if (!ipBlacklist(ip)) {
+        req.flash('warning', `This IP address has already added an account.`);
+        res.redirect('/');
+        return;
+      }
+
       utils.validUser(handle).then(() => {
         request(`https://twitter.com/${handle}`, (err, response, body) => {
           Handle.add(handle).then(() => Handle.fetchTemplate(handle, () => {
             updateAutoComplete(() => {
+              ipBlacklist(ip, 'add');
               req.flash('info', `${handle} was added successfully!`);
               res.redirect(`/`);
             });
@@ -109,7 +121,7 @@ function main() {
         });
       }, () => {
         if (handle !== "socket.io") {
-          req.flash('warning', `${handle} is not a valid Twitter user!`);
+          req.flash('warning', `${handle} is either invalid, protected, or has less than 100k followers`);
           res.redirect('/');
         }
       });
@@ -134,6 +146,14 @@ function updateAutoComplete(cb) {
     autocomplete = JSON.stringify(data.map(item => item.handle.toLowerCase()));
     cb();
   });
+}
+
+function ipBlacklist(ip, mode='lookup') {
+  if (mode === 'lookup') {
+    return ips[ip] === undefined;
+  } else {
+    ips[ip] = true;
+  }
 }
 
 module.exports = router;

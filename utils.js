@@ -78,7 +78,11 @@ module.exports = {
         if (body === undefined || err) return reject();
         $ = cheerio.load(body);
 
-        if ([undefined, null].indexOf($('.ProfileHeaderCard-joinDateText').html()) === -1) {
+        // Check for valid, non-protected, and 100k+ followers twitter account
+        if (
+          [undefined, null].indexOf($('.ProfileHeaderCard-joinDateText').html()) === -1 &&
+          $('span.Icon--protected').length === 0 &&
+          Number($("a[data-nav='followers']").attr('title').slice(0, -10).replace(/,/g, '')) >= 100000) {
           resolve();
         } else {
           reject();
