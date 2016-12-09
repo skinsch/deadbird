@@ -172,7 +172,7 @@ function checkerLoop() {
   spawner('checker').then(fail => {
     if (fail) checkerLoop();
     else {
-      data['checker'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
+      data['checker'].nextCheck = new Date().getTime() + settings.general.checkerRestInterval * 1000;
       setTimeout(() => {
         checkerLoop();
       }, settings.general.checkerRestInterval * 1000);
@@ -184,7 +184,7 @@ function fetcherLoop() {
   spawner('fetcher').then(fail => {
     if (fail) fetcherLoop();
     else {
-      data['fetcher'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
+      data['fetcher'].nextCheck = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
       setTimeout(() => {
         fetcherLoop();
       }, settings.general.fetcherRestInterval * 1000);
