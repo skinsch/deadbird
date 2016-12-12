@@ -167,9 +167,6 @@ module.exports = {
           let tweetStream = fs.createReadStream(`${__dirname}/../data/tweets/${tweet.tweetid}.gz`);
           let timelineStream = fs.createReadStream(`${__dirname}/../data/timelineTweets/${tweet.tweetid}.gz`);
 
-          let tweetWrite = tweetStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../data/tweets/${tweet.tweetid}`));
-          let timelineWrite = timelineStream.pipe(zlib.createGunzip()).pipe(fs.createWriteStream(`${__dirname}/../data/timelineTweets/${tweet.tweetid}`));
-
           // Make sure tweets are gunzipped before deletion
           async.parallel([
             cb => {
@@ -192,6 +189,37 @@ module.exports = {
             });
           });
 
+        });
+      });
+    });
+  },
+  undeleted(id) {
+    return new Promise((resolve, reject) => {
+      this.getCond({id}).then(tweet => {
+        db.query('UPDATE `tweets` SET ? WHERE ?', [{deleteDate: null}, {id}], (err, result) => {
+          let tweetStream = fs.createReadStream(`${__dirname}/../data/tweets/${tweet.tweetid}`);
+          let timelineStream = fs.createReadStream(`${__dirname}/../data/timelineTweets/${tweet.tweetid}`);
+
+          // Make sure tweets are gunzipped before deletion
+          async.parallel([
+            cb => {
+              let tweetWrite = tweetStream.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/tweets/${tweet.tweetid}.gz`));
+              tweetWrite.on('finish', () => {
+                cb();
+              });
+            },
+            cb => {
+              let timelineWrite = timelineStream.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/timelineTweets/${tweet.tweetid}.gz`));
+              timelineWrite.on('finish', () => {
+                cb();
+              });
+          }], () => {
+            fs.unlink(`${__dirname}/../data/tweets/${tweet.tweetid}`, () => {
+              fs.unlink(`${__dirname}/../data/timelineTweets/${tweet.tweetid}`, () => {
+                resolve({err: err, result: result});
+              });
+            });
+          });
         });
       });
     });

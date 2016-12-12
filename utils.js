@@ -37,14 +37,23 @@ module.exports = {
         timeout: settings.general.timeout,
         gzip: true
       }, (err, response) => {
-        // If error reaching page, just assume it exists
-        if (err) return cb("fail");
-
-        // If body says page doesn't exist (and it isn't because Twitter errored out) and the status code isn't 200
-        else if (response && response.statusCode !== 200) {
-          cb(false);
+        // If error or lack of response reaching page, push back into queue
+        if (err || !response) {
+          cb("fail");
         } else {
-          cb(true);
+
+          // 200 = good
+          if (response.statusCode === 200) {
+            cb(true);
+
+          // 404 = bad
+          } else if (response.statusCode === 404) {
+            cb(false);
+
+          // anything else = Twitter possibly down so pushback into queue
+          } else {
+            cb("fail");
+          }
         }
       });
     } catch (e) {
@@ -57,14 +66,23 @@ module.exports = {
         timeout: Number(timeout),
         gzip: true
       }, (err, response) => {
-        // If error reaching page, just assume it exists
-        if (err) return cb("fail");
-
-        // If body says page doesn't exist (and it isn't because Twitter errored out) and the status code isn't 200
-        else if (response && response.statusCode !== 200) {
-          cb(false);
+        // If error or lack of response reaching page, push back into queue
+        if (err || !response) {
+          cb("fail");
         } else {
-          cb(true);
+
+          // 200 = good
+          if (response.statusCode === 200) {
+            cb(true);
+
+          // 404 = bad
+          } else if (response.statusCode === 404) {
+            cb(false);
+
+          // anything else = Twitter possibly down so pushback into queue
+          } else {
+            cb("fail");
+          }
         }
       });
     } catch (e) {

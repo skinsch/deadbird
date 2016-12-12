@@ -34,30 +34,9 @@ $(() => {
   });
 
   if (autocompleteUsers.length > 0) {
-    $.ui.autocomplete.prototype._renderItem = function (ul, item) {
-      if (item.label === `Add "${$('#deadbirdSearch').val()}" to database`) {
-        item.label = `<strong>${item.label}</strong>`;
-        item.value = $('#deadbirdSearch').val()
-      }
-
-      return $("<li></li>")
-        .data("item.autocomplete", item)
-        .append(`<div id="ui-id-2" tabindex="-1" class="ui-menu-item-wrapper">${item.label}</div>`)
-        .appendTo(ul);
-    };
 
     $("#deadbirdSearch").autocomplete({
-      source: function(request, response) {
-        let users;
-        if ($('#deadbirdSearch').val().length <= 15 && autocompleteUsers.indexOf($('#deadbirdSearch').val()) === -1 && window.location.pathname.slice(0, 6) !== '/stats') {
-          users = autocompleteUsers.concat(`Add "${$('#deadbirdSearch').val()}" to database`);
-        } else {
-          users = autocompleteUsers;
-        }
-        response($.map(users, el => {
-          if (el.match(request.term)) return el;
-        }));
-      },
+      source: autocompleteUsers,
       select: () => {
         submitSearch();
       }
