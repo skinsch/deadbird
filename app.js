@@ -224,7 +224,7 @@ function updateStats(cb=()=>{}) {
   Handle.getAll().then(handles => {
     handles.unshift(null);
 
-    async.each(handles, (handle, cb) => {
+    async.eachLimit(handles, 50, (handle, cb) => {
       getStats(handle ? handle.id : null).then(stat => {
         stats[handle ? handle.id : "all"] = stat;
         cb();
