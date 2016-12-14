@@ -37,7 +37,8 @@ $(() => {
 
     $("#deadbirdSearch").autocomplete({
       source: autocompleteUsers,
-      select: () => {
+      select: (event, ui) => {
+        $("#deadbirdSearch").val(ui.item.label);
         submitSearch();
       }
     });
