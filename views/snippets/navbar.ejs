@@ -16,7 +16,9 @@
       return `<li>${parts[ind]}</li>`;
     }
   }).join(' • ').slice(0, -3);
-  nav += `<br><br><br><li><input id="deadbirdSearch" type='text' placeholder='${originalUrl.match('stats') ? "View specific user stats" : "View Twitter User"}' autofocus></li><br><a href="/addUser">Add new User</a>`;
+  if (!originalUrl.match('user')) {
+    nav += `<br><br><br><li><input id="deadbirdSearch" type='text' placeholder='${originalUrl.match('stats') ? "View specific user stats" : "View Twitter User"}' autofocus autocomplete="off"></li><br><a href="/user">Add new User</a>`;
+  }
 
 %>
 <a id="deadbirdLink" href=""><h1 class="deadbirdtitle"><img id='deadbirdLogo' src='/img/deadbird.svg'>Deadbird</h1></a>

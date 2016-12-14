@@ -74,6 +74,53 @@ function main() {
     res.render('about', {title: "About", socket, messages, basehref: settings.general.basehref, originalUrl});
   });
 
+  router.get('/user', function(req, res, next) {
+    res.render('addUser', {title: "Add new user", messages, autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+  });
+
+  router.post('/user', function(req, res, next) {
+    let handle = String(req.body.handle).replace(/@/g, '');
+    let ip = req.headers['cf-connecting-ip'] ||
+             req.headers['x-real-ip'] ||
+             req.headers['x-forwarded-for'] ||
+             req.connection.remoteAddress;
+
+    async.series([
+      cb => {
+        cb(!ipBlacklist(ip) ? "ip_already_used" : null);
+      },
+      cb => Handle.getCond({handle}).then(res => {
+        cb(res === null ? null : "duplicate");
+      }),
+      cb => utils.validUser(handle).then(() => {
+        request(`https://twitter.com/${handle}`, (err, response, body) => {
+          Handle.add(handle).then(() => Handle.fetchTemplate(handle, () => {
+            updateAutoComplete(() => {
+              ipBlacklist(ip, 'add');
+              cb(null);
+            });
+          }));
+        });
+      }, () => {
+        cb("invalid_user");
+      })
+    ], err => {
+      if (err === "duplicate") {
+        req.flash('warning', `${handle} is already in the database.`);
+        res.redirect('/user');
+      } else if (err === "ip_already_used") {
+        req.flash('warning', `This IP address has already added an account.`);
+        res.redirect('/user');
+      } else if (err === "invalid_user") {
+        req.flash('warning', `${handle} is either invalid, protected, or has less than 100k followers.`);
+        res.redirect('/user');
+      } else {
+        req.flash('info', `${handle} was added successfully!`);
+        res.redirect(`/`);
+      }
+    });
+  });
+
   router.get('/stats/:handle', (req, res, next) => {
     let handleIn = String(req.params.handle.replace(/@/g, ''));
     Handle.getCond({handle: handleIn}).then(handle => {
@@ -107,28 +154,8 @@ function main() {
 
     // User doesn't exist - Add to db. This behavior will be more sophisticated in the future.
     }, err => {
-      if (!ipBlacklist(ip)) {
-        req.flash('warning', `This IP address has already added an account.`);
-        res.redirect('/');
-        return;
-      }
-
-      utils.validUser(handle).then(() => {
-        request(`https://twitter.com/${handle}`, (err, response, body) => {
-          Handle.add(handle).then(() => Handle.fetchTemplate(handle, () => {
-            updateAutoComplete(() => {
-              ipBlacklist(ip, 'add');
-              req.flash('info', `${handle} was added successfully!`);
-              res.redirect(`/`);
-            });
-          }));
-        });
-      }, () => {
-        if (handle !== "socket.io") {
-          req.flash('warning', `${handle} is either invalid, protected, or has less than 100k followers`);
-          res.redirect('/');
-        }
-      });
+      req.flash('warning', `${handle} is not in the database`);
+      res.redirect('/');
     });
   });
 

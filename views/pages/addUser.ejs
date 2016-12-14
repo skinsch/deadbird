@@ -6,24 +6,14 @@
   <socket hidden><%-socket%></socket>
   <% include ../snippets/navbar %>
   <div id="deadbirdMain">
-    <h1>About</h1><br>
-    <p>Dead Bird by Luis Prado from the Noun Project</p><br>
+    <h1>Add new user</h1><br>
+    <p>Add a new user for Deadbird to track. Currently, only users with 100k followers<br>
+    or more can be added and only 1 user can be added per IP address.</p><br><br>
     <div class="row">
-      <div class="col-xs-6 col-md-4 statlog">
-        <h3 class='deadbirdStatTitle'>Fetcher</h3>
-        <textarea id='fetcherLog'>Loading...</textarea>
-        <p>The fetcher continuously checks for new tweets made by users in the database.<br><br>When it finds a new tweet, it parses and saves the tweet to the database.</p>
-      </div>
-      <div class="col-xs-6 col-md-4 statlog">
-        <h3 class='deadbirdStatTitle'>Checker</h3>
-        <textarea id='checkerLog'>Loading...</textarea>
-        <p>The checker checks to see if a saved tweet has been deleted or not. It does this by send a HEAD request to the generated Twitter status URL and checking the status code for 404.<br><br>If we get a 404 status code, the tweet has been deleted and it'll now show up on the main page stream as well as the individual user's page.<br><br>The crawler checks tweets created within the last 7 days every 15 minutes.</p>
-      </div>
-      <div class="col-xs-6 col-md-4 statlog">
-        <h3 class='deadbirdStatTitle'>Templates</h3>
-        <textarea id='templateLog'>Loading...</textarea>
-        <p>Templates are the user's profile pic and current Twitter page info (tweets, followers, bio, etc). These pages are updated daily.</p>
-      </div>
+      <form action='user' method='POST'>
+        <input name='handle' id="newUser-search-" placeholder="Add new user" autocomplete="off" autofocus><br><br>
+        <input type='submit' class='btn'>
+      </form>
     </div>
   </div>
   <% include ../snippets/googleAnalytics %>

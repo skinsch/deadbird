@@ -10726,3 +10726,7 @@ textarea:focus::placeholder {
 a#deadbirdLink {
     text-decoration: none !important;
 }
+
+#newUser-search- {
+    text-align: center;
+}
