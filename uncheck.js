@@ -53,13 +53,11 @@ let q = async.queue((tweet, cb) => {
     }
 
     if (exists) {
-      console.log('tweet exists...need to undelete');
+      //console.log('tweet exists...need to undelete');
       totalUndeletedTweets++;
-      Handle.incVal('deleted', -1, tweet.handle).then(() => {
-        charm.write(`\n\t${tweet.content}\n\n`);
-        Tweet.undeleted(tweet.id).then(() => {
-          cb();
-        });
+      charm.write(`\n\t${tweet.content}\n\n`);
+      Tweet.undeleted(tweet.id).then(() => {
+        cb();
       });
     } else {
       cb();
@@ -68,14 +66,22 @@ let q = async.queue((tweet, cb) => {
 }, settings.general.rate);
 
 q.drain = () => {
-  if (tty) {
-    charm.down(1);
-    charm.cursor(true);
-    console.log(`\n${totalUndeletedTweets} tweets undeleted`);
-  } else {
-    process.stdout.write(JSON.stringify({text: `${totalUndeletedTweets} tweets undeleted`}));
-  }
-  process.exit(0);
+  Handle.getAll().then(handles => {
+    async.each(handles, (handle, cb) => {
+      Tweet.getDeletedTweets(handle.handle).then(tweets => {
+        Handle.setVal('deleted', tweets ? tweets.length : 0, handle.handle).then(() => cb());
+      });
+    }, () => {
+      if (tty) {
+        charm.down(1);
+        charm.cursor(true);
+        console.log(`\n${totalUndeletedTweets} tweets undeleted`);
+      } else {
+        process.stdout.write(JSON.stringify({text: `${totalUndeletedTweets} tweets undeleted`}));
+      }
+      process.exit(0);
+    })
+  });
 };
 
 

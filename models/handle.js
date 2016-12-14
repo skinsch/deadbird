@@ -80,6 +80,15 @@ module.exports = {
       });
     });
   },
+  setVal(key, value, handle) {
+    return new Promise((resolve, reject) => {
+      db.query('UPDATE `handles` SET ? WHERE ?', [{[key]: value}, {handle}], (err, data) => {
+        if (err) reject(err);
+        else if (data.length === 0) resolve(null);
+        else resolve();
+      });
+    });
+  },
   getTemplate(handle) {
     return new Promise((resolve, reject) => {
       this.getCond({handle}).then(handle => {
@@ -125,6 +134,24 @@ module.exports = {
        </ol>
       </div>
     </div>`);
+
+        // Insert pagination
+        $("ol.stream-items").prepend(`
+          <li class="js-stream-item stream-item stream-item" data-item-type="tweet">
+            <div id="deadbirdPagination" style="
+              /* margin: auto; */
+              margin-top: 15px;
+              text-align: center;
+              padding-bottom: 15px;
+              border-bottom: #CCC 1px solid;
+            ">
+            <div id="deadbirdPaginationControl">
+            </div>
+            <div id="deadbirdPaginationStat"></div>
+          </div>
+        </li>`
+        );
+
 
         // Extract profile pic and replace with local version
         let profileImage = $('.ProfileAvatar-image').attr('src');

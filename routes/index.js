@@ -97,9 +97,12 @@ function main() {
              req.headers['x-forwarded-for'] ||
              req.connection.remoteAddress;
 
+    let page = Number((req.query.page || null));
+    if (page < 1) page = 1;
+
     if (handle === "favicon.ico") return;
 
-    Tweet.genTimeline(handle).then(html => {
+    Tweet.genTimeline(handle, page).then(html => {
       res.send(html);
 
     // User doesn't exist - Add to db. This behavior will be more sophisticated in the future.

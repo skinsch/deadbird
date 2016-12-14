@@ -135,9 +135,9 @@ module.exports = {
       });
     });
   },
-  getDeletedTweets(handle) {
+  getDeletedTweets(handle, page=null) {
     return new Promise((resolve, reject) => {
-      db.query('SELECT t.*, h.id, h.handle from `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE ' + andify({deleteDate: "!null", ['h.handle']: handle}).query + ' ORDER BY `deletedate` DESC', (err, data) => {
+      db.query('SELECT t.*, h.id, h.handle from `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE ' + andify({deleteDate: "!null", ['h.handle']: handle}).query + ' ORDER BY `deletedate` DESC' + (page !== null ? ' LIMIT ' + ((page-1)*25) + ', 25' : ''), (err, data) => {
         if (err) reject(err);
         else if (data.length === 0) resolve(null);
         else resolve(data);
@@ -253,40 +253,61 @@ module.exports = {
       });
     });
   },
-  genTimeline(handle) {
+  genTimeline(handle, page=null) {
     return new Promise((resolve, reject) => {
-      Handle.getTemplate(handle).then(template => {
-        if (template.template === undefined) return reject("HANDLE_NOT_EXIST");
 
-        this.getDeletedTweets(handle).then(tweets => {
-          let htmlTweets = "";
-          $ = cheerio.load(template.template);
-          $('#permalink-overlay').remove();
-          $('.PermalinkProfile-overlay').remove();
-          async.eachLimit(tweets, 1, (tweet, cb) => {
-            this.getTweetTxt(tweet.tweetid).then(tweet => {
-              htmlTweets += `
-              <li class="js-stream-item stream-item stream-item" data-item-type="tweet" data-deleteTime="${tweet.info.birthtime}">
-                ${tweet.timeline}
-              </li>`;
-              cb();
-            });
-          }, () => {
-            $('head').append(`
-              <style>
-                html, body, #doc, #page-outer {
-                    height: initial !important;
-                }
-              </style>`);
-            $('#stream-items-id').append(htmlTweets).html();
-            $('head').append("<base href='" + settings.general.basehref + "'>")
-            $('body').append("<script src='js/jquery.js'></script>")
-            $('body').append("<script src='js/moment.min.js'></script>")
-            $('body').append("<script src='js/general.js'></script>")
-            resolve($.html());
+      let handleRes, template, tweets;
+      async.series([
+        cb => Handle.getCond({handle}).then(data => {
+          handleRes = data;
+          cb(null);
+        }),
+        cb => Handle.getTemplate(handle).then(data => {
+          template = data;
+          cb(template.template === undefined ? "HANDLE_NOT_EXIST" : null);
+        }),
+        cb => this.getDeletedTweets(handle, page).then(data => {
+          tweets = data;
+          cb(null);
+        })
+
+      ], err => {
+        if (err) return reject(err);
+
+        let htmlTweets = "";
+        let totalPages = Math.ceil(handleRes.deleted/25);
+        $ = cheerio.load(template.template);
+        $('#permalink-overlay').remove();
+        $('.PermalinkProfile-overlay').remove();
+
+        // Inject pagination
+        $('#deadbirdPaginationStat').html(`${handleRes.deleted} deleted tweets total`);
+        $('#deadbirdPaginationControl').html(`<a href="${handle}/?page=1">&lt;&lt;</a> <a href="${handle}/?page=${page === 1 ? 1 : page-1}">&lt;</a> Page ${page} of ${totalPages} <a href="${handle}/?page=${page === totalPages ? totalPages : page+1}">&gt;</a> <a href="${handle}/?page=${totalPages}">&gt;&gt;</a>`);
+
+
+        async.eachLimit(tweets, 1, (tweet, cb) => {
+          this.getTweetTxt(tweet.tweetid).then(tweet => {
+            htmlTweets += `
+            <li class="js-stream-item stream-item stream-item" data-item-type="tweet" data-deleteTime="${tweet.info.birthtime}">
+              ${tweet.timeline}
+            </li>`;
+            cb();
           });
+        }, () => {
+          $('head').append(`
+            <style>
+              html, body, #doc, #page-outer {
+                  height: initial !important;
+              }
+            </style>`);
+          $('#stream-items-id').append(htmlTweets).html();
+          $('head').append("<base href='" + settings.general.basehref + "'>")
+          $('body').append("<script src='js/jquery.js'></script>")
+          $('body').append("<script src='js/moment.min.js'></script>")
+          $('body').append("<script src='js/general.js'></script>")
+          resolve($.html());
         });
-      });
+      })
     });
   }
 };
