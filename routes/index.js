@@ -29,7 +29,18 @@ function main() {
   router.all('*', (req, res, next) => {
     originalUrl = req.app.get('originalUrl');
     messages    = req.app.get('messages');
-    next();
+    if (req.url.slice(0, 5) === '/user') {
+      Handle.getAll().then(data => {
+        if (!utils.acceptingNewUsers() || data.length >= utils.maxNewUsers()) {
+          req.flash('warning', `We are currently not accepting new users. Please try again later`);
+          res.redirect('/');
+        } else {
+          next();
+        }
+      });
+    } else {
+      next();
+    }
   });
 
   /* GET home page. */

@@ -1,3 +1,4 @@
+const fs       = require('fs');
 const cheerio  = require('cheerio');
 const Promise  = require('bluebird');
 const moment   = require('moment');
@@ -107,5 +108,13 @@ module.exports = {
         }
       });
     });
+  },
+  acceptingNewUsers() {
+    let settings = JSON.parse(fs.readFileSync('./settings.json', 'utf8'));
+    return settings.general.acceptingNewUsers;
+  },
+  maxNewUsers() {
+    let settings = JSON.parse(fs.readFileSync('./settings.json', 'utf8'));
+    return settings.general.maxUsers;
   }
 };

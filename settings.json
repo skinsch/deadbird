@@ -10,6 +10,8 @@
     "fetcherRestInterval": 0,
     "checkerRestInterval": 900,
     "templateRestInterval": 86400,
+    "acceptingNewUsers": true,
+    "maxUsers": 500,
     "socket": 8080
   },
   "db": {
