@@ -39,7 +39,7 @@ module.exports = {
         },
 
         cb => {
-          request({url: `https://twitter.com/${user.handle}/status/${data.tweetid}`, gzip: true}, (err, response, body) => {
+          request({url: `https://twitter.com/${user.handle}/status/${data.tweetid}`, timeout: settings.general.timeout * 3, gzip: true}, (err, response, body) => {
              if (err || body === undefined) return resolve({id: 0});
             $ = cheerio.load(body, {
               normalizeWhitespace: true

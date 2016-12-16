@@ -101,7 +101,10 @@ module.exports = {
   },
   fetchTemplate(handle, cb) {
     this.getCond({handle}).then(handle => {
-      request(`https://twitter.com/${handle.handle}`, (err, response, body) => {
+      request(`https://twitter.com/${handle.handle}`, {
+        timeout: settings.general.timeout * 5,
+        gzip: true
+      }, (err, response, body) => {
         $ = cheerio.load(body, {
           normalizeWhitespace: true
         });
@@ -159,7 +162,10 @@ module.exports = {
         $('.ProfileAvatar-image').attr('src', `profileImg/${handle.id}${ext}`);
 
         fs.writeFile(`./data/templates/${handle.id}`, $.html(), () => {
-          let dl = request(profileImage).pipe(fs.createWriteStream(`./data/profileImg/${handle.id}${ext}`));
+          let dl = request(profileImage, {
+            timeout: settings.general.timeout * 5,
+            gzip: true
+          }).pipe(fs.createWriteStream(`./data/profileImg/${handle.id}${ext}`));
           this.update({template: 1, ext}, handle.id).then(() => {
             dl.on('finish', () => {
               cb();

@@ -175,7 +175,10 @@ function main() {
         cb(res === null ? null : "duplicate");
       }),
       cb => utils.validUser(handle).then(() => {
-        request(`https://twitter.com/${handle}`, (err, response, body) => {
+        request(`https://twitter.com/${handle}`, {
+          timeout: settings.general.timeout * 3,
+          gzip: true
+        }, (err, response, body) => {
           Handle.add(handle).then(() => Handle.fetchTemplate(handle, () => {
             updateAutoComplete(() => {
               ipBlacklist(ip, 'add');

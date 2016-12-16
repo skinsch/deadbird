@@ -1,3 +1,7 @@
+const settings = require('./utils').settings;
+const https = require('https');
+https.globalAgent.maxSockets = settings.general.maxSockets;
+
 const cheerio = require('cheerio');
 const request = require('request');
 const async   = require('async');
@@ -103,14 +107,14 @@ function main() {
 }
 
 function tweetExists(handle, id, cb) {
-  request({url: `https://twitter.com/${handle}/status/${id}`, gzip: true}, (err, response, body) => {
+  request({url: `https://twitter.com/${handle}/status/${id}`, timeout: settings.general.timeout, gzip: true}, (err, response, body) => {
     cb(response.statusCode === 200);
   });
 }
 
 function getTweets(user, cb) {
   let $;
-  request({url: "https://twitter.com/" + user.handle, gzip: true}, (err, response, body) => {
+  request({url: "https://twitter.com/" + user.handle, timeout: settings.general.timeout * 3, gzip: true}, (err, response, body) => {
     if (body === undefined || err) return cb([]);
     $ = cheerio.load(body);
 
