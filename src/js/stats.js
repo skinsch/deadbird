@@ -1,6 +1,7 @@
 $(() => {
   let base = $('base').attr('href');
   let handle = $('handle').html();
+  let date = $('date').html();
 
   window.socket = io.connect(":" + $('socket').html());
 
@@ -26,7 +27,7 @@ $(() => {
       let statUpdate = $('statUpdate').html();
       let categories = stats.map((val, ind)=>moment(val.date.slice(0, 0-14)).format('MM/DD')).reverse();
 
-      Highcharts.chart('container', {
+      let chart = Highcharts.chart('container', {
         chart: {
           type: 'column'
         },
@@ -84,6 +85,10 @@ $(() => {
           data: stats.map((val, ind) => -val.deleted).reverse(),
           color: "#BE0A07"
         }]
+      });
+      let colors = ['#07bbbe', '#ae05c2'];
+      chart.series.forEach((set, index) => {
+        set.data[categories.indexOf(date)].update({color:colors[index]});
       });
     }
   });
