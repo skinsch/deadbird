@@ -290,6 +290,7 @@ module.exports = {
 
         let htmlTweets = "";
         let totalPages = Math.ceil(handleRes.deleted/25);
+        if (totalPages === 0) totalPages = 1;
         $ = cheerio.load(template.template);
         $('#permalink-overlay').remove();
         $('.PermalinkProfile-overlay').remove();

@@ -3,6 +3,7 @@ let query = parseQuery(originalUrl);
 let page = Number((query.page || 1));
 let totalPages = Math.ceil(totalTweets/25);
 if (page < 1) page = 1;
+if (totalPages === 0) totalPages = 1;
 %>
 
 <div id="deadbirdPagination">
