@@ -1,5 +1,7 @@
+const settings = require("./settings.json");
 const https = require('https');
-https.globalAgent.maxSockets = 150;
+https.globalAgent.maxSockets = settings.general.maxSockets;
+
 const async   = require('async');
 const moment  = require('moment');
 const utils   = require('./utils');
@@ -32,7 +34,6 @@ async.series([
 ], () => {
   console.log(`\nFinal results: ${speed} / ${timeout}\n`);
   console.log(averages);
-  let settings = require("./settings.json");
   settings.general.rate = speed;
   settings.general.timeout = timeout;
   fs.writeFileSync('./settings.json', JSON.stringify(settings, null, 2), 'utf8');

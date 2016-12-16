@@ -1,7 +1,7 @@
 const mysql    = require('mysql');
 const settings = require('../utils').settings;
 
-let db = settings.db.prod;
+let db = settings.db;
 let initDone = false;
 
 var pool = mysql.createPool({

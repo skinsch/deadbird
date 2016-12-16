@@ -1,5 +1,7 @@
+const settings = require('../utils').settings;
 const https = require('https');
-https.globalAgent.maxSockets = 150;
+https.globalAgent.maxSockets = settings.general.maxSockets;
+
 const fs       = require('fs');
 const moment   = require('moment');
 const Promise  = require('bluebird');
@@ -10,7 +12,6 @@ const async    = require('async');
 const zlib     = require('zlib');
 const Readable = require('stream').Readable;
 const andify   = require('../utils').andify;
-const settings = require('../utils').settings;
 const db       = require('./db').connection;
 
 const Handle = require('./handle');

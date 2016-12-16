@@ -1,9 +1,10 @@
+const settings = require("./settings.json");
 const https = require('https');
-https.globalAgent.maxSockets = 150;
+https.globalAgent.maxSockets = settings.general.maxSockets;
+
 const async    = require('async');
 const moment   = require('moment');
 const utils    = require('./utils');
-const settings = require("./settings.json");
 
 const db      = require('./models/db');
 const Tweet   = require('./models/tweet');
@@ -55,6 +56,9 @@ let q = async.queue((tweet, cb) => {
     if (!exists) {
       totalDeletedTweets++;
       Handle.incVal('deleted', 1, tweet.handle).then(() => {
+        charm.left(255);
+        charm.erase('line');
+        charm.write(`${total} / ${startTotal}+${fails} | ${startTotal+fails-total} | ${Math.floor(rate)} tweets/sec | eta: ${format} | ${tweet.handle} | https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`)
         charm.write(`\n\t${tweet.content}\n\n`);
         Tweet.deleted(tweet.id).then(() => {
           cb();
