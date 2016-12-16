@@ -10730,3 +10730,9 @@ a#deadbirdLink {
 #newUser-search- {
     text-align: center;
 }
+
+.info {
+    text-align: left;
+    width: 50%;
+    margin: auto
+}
