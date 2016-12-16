@@ -21,14 +21,13 @@ const Tweet  = require('./models/tweet');
 let handles;
 let tweetids = [];
 
-async.series([
+async.parallel([
   cb => {
     db.connection.query('SELECT tweetid from tweets', (err, results) => {
       results.forEach(tweet => tweetids[tweet.tweetid] = true);
       cb();
     })
   },
-  cb => db.init(cb),
   cb => Handle.getAll().then(data => {
     handles = data;
     cb();
