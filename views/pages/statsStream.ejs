@@ -1,0 +1,70 @@
+<%
+let query = parseQuery(originalUrl.slice(originalUrl.indexOf('?')-1));
+let page = Number((query.page || 1));
+if (page < 1) page = 1;
+
+let totalPages = Math.ceil(totalTweets/25);
+let fmtDate    = date.replace(/\//, '-');
+
+let handleUrl;
+if (handle !== undefined) handleUrl += "/";
+else handleUrl = "";
+
+let pagination = `${totalTweets} total deleted tweets on ${date}`;
+let paginationControl = `<a href="statsStream/${handleUrl}${fmtDate}/?page=1">&lt;&lt;</a> <a href="statsStream/${handleUrl}${fmtDate}/?page=${page === 1 ? 1 : page-1}">&lt;</a> Page ${page} of ${totalPages} <a href="statsStream/${handleUrl}${fmtDate}/?page=${page === totalPages ? totalPages : page+1}">&gt;</a> <a href="statsStream/${handleUrl}${fmtDate}/?page=${totalPages}">&gt;&gt;</a>`;
+
+%>
+<html>
+<head>
+  <% include ../snippets/header %>
+</head>
+<body>
+  <autocomplete hidden><%-autocomplete%></autocomplete>
+  <stats hidden><%-stats%></stats>
+  <statUpdate hidden><%-statUpdate%></statUpdate>
+  <handle hidden><%-handle%></handle>
+  <% include ../snippets/navbar %>
+  <div id="deadbirdPagination">
+    <div id="deadbirdPaginationControl">
+      <%-pagination%>
+    </div>
+    <div id="deadbirdPaginationStat">
+      <%-paginationControl%>
+    </div>
+  </div>
+  <div id="deadbirdMain">
+    <h1>Stats<%= handle ? ` for ${handle} ` : " "%>on <%=date%></h1><br>
+    <div id="container" style="min-width: 310px; height: 400px; margin: 0px auto 25px"></div>
+  </div>
+  <div role="main" aria-labelledby="content-main-heading" class="content-main top-timeline-tweetbox" id="timeline">
+    <div class="stream-container conversations-enabled " data-max-position="796955872979251200" data-min-position="796868124477968384">
+    </div>
+    <div class="stream" id="deadbirdStream">
+      <ol class="stream-items js-navigable-stream" id="stream-items-id">
+      <% for (let i = 0; i < tweets.length; i++) { %>
+        <li class="js-stream-item stream-item stream-item" data-item-type="tweet" data-deleteTime="<%-tweets[i].info.birthtime%>">
+        <%-tweets[i].timeline%>
+        </li>
+      <% } %>
+      </ol>
+      <ol class="hidden-replies-container">
+        
+      </ol>
+    </div>
+  </div>
+  <% include ../snippets/googleAnalytics %>
+  <% include ../snippets/footer %>
+</body>
+</html>
+
+<%
+function parseQuery(qstr) {
+    var query = {};
+    var a = qstr.substr(2).split('&');
+    for (var i = 0; i < a.length; i++) {
+        var b = a[i].split('=');
+        query[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
+    }
+    return query;
+}
+%>

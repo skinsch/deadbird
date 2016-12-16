@@ -144,6 +144,19 @@ module.exports = {
       });
     });
   },
+  getDeletedTweetsDate(handle=null, date, page=null) {
+    return new Promise((resolve, reject) => {
+      let handleID;
+      db.query('SELECT t.*, h.id AS handleID, h.handle from `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE' + (handle ? " h.handle = '" + handle + "' AND " : " ") + 'DATE(deleteDate) = DATE(\'' + new Date().getFullYear() + '/' + date + '\') ORDER BY `deletedate` DESC' + (page !== null ? ' LIMIT ' + ((page-1)*25) + ', 25' : ''), (err, data) => {
+
+        if (data.length > 0) handleID = data[0].handleID;
+        else handleID = -1;
+        db.query('SELECT COUNT(*) from `tweets` WHERE' + (handle ? " handle = '" + handleID + "' AND " : " ") + 'DATE(deleteDate) = DATE(\'' + new Date().getFullYear() + '/' + date + '\')', (err, total) => {
+          err ? reject(err) : resolve({tweets: data, total: total[0]['COUNT(*)']});
+        });
+      });
+    });
+  },
   update(vals, id) {
     return new Promise((resolve, reject) => {
       db.query('UPDATE `tweets` SET ? WHERE ?', [vals, {id}], (err, result) => {
@@ -281,7 +294,7 @@ module.exports = {
         $('.PermalinkProfile-overlay').remove();
 
         // Inject pagination
-        $('#deadbirdPaginationStat').html(`${handleRes.deleted} deleted tweets total`);
+        $('#deadbirdPaginationStat').html(`${handleRes.deleted} total deleted tweets`);
         $('#deadbirdPaginationControl').html(`<a href="${handle}/?page=1">&lt;&lt;</a> <a href="${handle}/?page=${page === 1 ? 1 : page-1}">&lt;</a> Page ${page} of ${totalPages} <a href="${handle}/?page=${page === totalPages ? totalPages : page+1}">&gt;</a> <a href="${handle}/?page=${totalPages}">&gt;&gt;</a>`);
 
 

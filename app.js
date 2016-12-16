@@ -13,6 +13,7 @@ const http         = require('http');
 const async        = require('async');
 const schedule     = require('node-schedule');
 const session      = require('express-session');
+const moment       = require('moment');
 
 const db     = require('./models/db');
 const Handle = require('./models/handle');
@@ -232,6 +233,7 @@ function updateStats(cb=()=>{}) {
     }, () => {
       app.set('stats', stats);
       app.set('statUpdate', new Date().getTime());
+      app.set('dates', JSON.parse(JSON.stringify(stats['all'])).map((val, ind)=>moment(val.date.slice(0, 0-14)).format('MM/DD')).reverse());
       cb();
     });
   });

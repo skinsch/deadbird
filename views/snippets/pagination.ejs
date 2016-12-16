@@ -7,7 +7,7 @@ if (page < 1) page = 1;
 
 <div id="deadbirdPagination">
   <div id="deadbirdPaginationControl"><a href="/?page=1"><<</a> <a href="/?page=<%=page === 1 ? 1 : page-1%>"><</a> Page <%=page%> of <%=totalPages%> <a href="/?page=<%=page === totalPages ? totalPages : page+1%>">></a> <a href="/?page=<%=totalPages%>">>></a> </div>
-  <div id="deadbirdPaginationStat"> <%=totalTweets%> deleted tweets total</div>
+  <div id="deadbirdPaginationStat"> <%=totalTweets%> total deleted tweets</div>
 </div>
 
 <%

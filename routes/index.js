@@ -10,7 +10,7 @@ const settings = utils.settings;
 const Tweet  = require('../models/tweet');
 const Handle = require('../models/handle');
 
-let originalUrl, autocomplete, socket, messages, ips = {};
+let originalUrl, dates, autocomplete, socket, messages, ips = {};
 
 // Cache the handles list for autocomplete
 async.parallel([
@@ -29,6 +29,7 @@ function main() {
   router.all('*', (req, res, next) => {
     originalUrl = req.app.get('originalUrl');
     messages    = req.app.get('messages');
+    dates       = req.app.get('dates');
     if (req.url.slice(0, 5) === '/user') {
       Handle.getAll().then(data => {
         if (!utils.acceptingNewUsers() || data.length >= utils.maxNewUsers()) {
@@ -48,7 +49,7 @@ function main() {
     let page = Number((req.query.page || 1));
     if (page < 1) page = 1;
 
-  let tweets, totalTweets;
+    let tweets, totalTweets;
     async.parallel([
       cb => Tweet.getAllDeleted((page*25)-25).then(data => {
         tweets = data.tweets;
@@ -77,7 +78,77 @@ function main() {
 
   router.get('/stats', (req, res, next) => {
     Handle.getAll('deleted').then(handles => {
-      res.render('stats', {title: "Stats", messages, stats: JSON.stringify(req.app.get('stats')['all']), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
+      res.render('stats', {title: "Stats", messages, handle: undefined, stats: JSON.stringify(req.app.get('stats')['all']), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
+    });
+  });
+
+  router.get('/statsStream/:date?', (req, res, next) => {
+    let date   = (String(req.params.date) || "").replace(/-/, '/');
+    if (dates.indexOf(date) === -1) return res.redirect('/');
+
+    let page = Number((req.query.page || 1));
+    if (page < 1) page = 1;
+
+    let tweets, totalTweets;
+    async.parallel([
+      cb => Tweet.getDeletedTweetsDate(null, date, page).then(data => {
+        tweets = data.tweets;
+        totalTweets = data.total;
+        cb();
+      })
+    ], err => {
+      let tweetData = [];
+
+      async.eachLimit(tweets, 1, (tweet, cb) => {
+        Tweet.getTweetTxt(tweet.tweetid).then(data => {
+          tweetData.push(data);
+          cb();
+        });
+      }, () => {
+        res.render('statsStream', {title: `Stats on ${date}`, messages, date, handle: undefined, stats: JSON.stringify(req.app.get('stats')['all']), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, tweets: tweetData, totalTweets});
+      });
+    });
+  });
+
+  router.get('/statsStream/:handle/:date', (req, res, next) => {
+    let handleIn = (String(req.params.handle) || "").replace(/@/g, '');
+
+    let date   = (String(req.params.date) || "").replace(/-/, '/');
+    if (dates.indexOf(date) === -1) return res.redirect('/');
+
+    let page = Number((req.query.page || 1));
+    if (page < 1) page = 1;
+
+    let tweets, totalTweets, handle;
+    async.parallel([
+      cb => Tweet.getDeletedTweetsDate(handleIn, date, page).then(data => {
+        tweets = data.tweets;
+        totalTweets = data.total;
+        cb();
+      }),
+
+      cb => Handle.getCond({handle: handleIn}).then(data => {
+        handle = data;
+        if (handle === null) return cb("doesn't_exist");
+        cb();
+      })
+    ], err => {
+      if (err === "doesn't_exist") {
+        req.flash('warning', `${handleIn} is not in the database`);
+        res.redirect('/stats');
+        return
+      }
+
+      let tweetData = [];
+
+      async.eachLimit(tweets, 1, (tweet, cb) => {
+        Tweet.getTweetTxt(tweet.tweetid).then(data => {
+          tweetData.push(data);
+          cb();
+        });
+      }, () => {
+        res.render('statsStream', {title: `Stats for ${handleIn} on ${date}`, messages, date, handle: handleIn, stats: JSON.stringify(req.app.get('stats')[handle.id]), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, tweets: tweetData, totalTweets});
+      });
     });
   });
 

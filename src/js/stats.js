@@ -1,5 +1,7 @@
 $(() => {
   let base = $('base').attr('href');
+  let handle = $('handle').html();
+
   window.socket = io.connect(":" + $('socket').html());
 
   socket.on('status', data => {
@@ -22,13 +24,26 @@ $(() => {
     if (window.location.href.slice(base.length-1).slice(0, 6) === '/stats') {
       let stats = JSON.parse($('stats').html() || "{}");
       let statUpdate = $('statUpdate').html();
+      let categories = stats.map((val, ind)=>moment(val.date.slice(0, 0-14)).format('MM/DD')).reverse();
+
       Highcharts.chart('container', {
         chart: {
           type: 'column'
         },
         plotOptions: {
           series: {
-            stacking: 'normal'
+            stacking: 'normal',
+            cursor: 'pointer',
+            point: {
+              events: {
+                click: function () {
+                  console.log(handle);
+                  if (handle.length !== 0) handle += "/";
+
+                  window.location.href = `${$('base').attr('href')}statsStream/${handle}${this.category.replace(/\//, '-')}`;
+                }
+              }
+            }
           }
         },
         title: {
@@ -38,7 +53,7 @@ $(() => {
           text: `Last updated ${moment.duration((new Date().getTime() - Number(statUpdate))).minutes()} minutes ago`
         },
         xAxis: {
-          categories: stats.map((val, ind)=>moment(val.date.slice(0, 0-14)).format('MM/DD')).reverse()
+          categories
         },
         yAxis: {
           labels: {
