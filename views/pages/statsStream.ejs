@@ -26,11 +26,11 @@ let paginationControl = `<a href="statsStream/${handleUrl}${fmtDate}/?page=1">&l
   <date hidden><%-date%></date>
   <% include ../snippets/navbar %>
   <div id="deadbirdPagination">
-    <div id="deadbirdPaginationControl">
-      <%-pagination%>
-    </div>
     <div id="deadbirdPaginationStat">
       <%-paginationControl%>
+    </div>
+    <div id="deadbirdPaginationControl">
+      <%-pagination%>
     </div>
   </div>
   <div id="deadbirdMain">
