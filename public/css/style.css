@@ -10736,3 +10736,11 @@ a#deadbirdLink {
     width: 50%;
     margin: auto
 }
+
+.quarter {
+    width: 25%;
+}
+
+.center {
+    text-align: center;
+}
