@@ -53,7 +53,7 @@ $(() => {
   let text = $('message').html() || "";
   let type;
 
-  if (text !== "") {
+  if (text !== "" && text.substr(8, 9) !== "socket.io") {
     if (text.slice(0, 4) === 'info') {
       type = 'success';
       text = text.slice(5);
