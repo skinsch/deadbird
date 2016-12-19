@@ -46,7 +46,7 @@ let paginationControl = `<a href="statsStream/${handleUrl}${fmtDate}/?page=1">&l
     <div class="stream" id="deadbirdStream">
       <ol class="stream-items js-navigable-stream" id="stream-items-id">
       <% for (let i = 0; i < tweets.length; i++) { %>
-        <li class="js-stream-item stream-item stream-item" data-item-type="tweet" data-deleteTime="<%-tweets[i].info.birthtime%>">
+        <li class="js-stream-item stream-item stream-item" data-item-type="tweet" data-deleteTime="<%-tweets[i].info.deleteDate%>">
         <%-tweets[i].timeline%>
         </li>
       <% } %>

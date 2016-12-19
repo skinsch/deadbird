@@ -240,7 +240,7 @@ module.exports = {
   },
   getTweetTxt(id) {
     return new Promise((resolve, reject) => {
-      fs.stat(`${__dirname}/../data/tweets/${id}`, (err, info) => {
+      this.getCond({tweetid: id}).then(info => {
         fs.readFile(`${__dirname}/../data/tweets/${id}`, 'utf8', (err, tweet) => {
           fs.readFile(`${__dirname}/../data/timelineTweets/${id}`, 'utf8', (err, timeline) => {
             resolve({tweet, timeline, info});
@@ -331,7 +331,7 @@ module.exports = {
         async.eachLimit(tweets, 1, (tweet, cb) => {
           this.getTweetTxt(tweet.tweetid).then(tweet => {
             htmlTweets += `
-            <li class="js-stream-item stream-item stream-item" data-item-type="tweet" data-deleteTime="${tweet.info.birthtime}">
+            <li class="js-stream-item stream-item stream-item" data-item-type="tweet" data-deleteTime="${tweet.info.deleteDate}">
               ${tweet.timeline}
             </li>`;
             cb();
