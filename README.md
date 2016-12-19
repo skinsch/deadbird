@@ -7,6 +7,7 @@ Save deleted tweets of Twitter users.
 3. Import `deadbird.sql` into your new db by running this from the command line `mysql -u deadbird -pdeadbird -D deadbird < deadbird.sql`.
 4. Run `npm install` to fetch Deadbird's dependencies.
 5. Run `gulp` to minify ejs templates and transpile js.
+6. (optional) If your fetchers keeps timing out even with low values, you might want to adjust your `ulimit nofile` settings. You can read more about how to set this up (for Ubuntu at least) [here](http://posidev.com/blog/2009/06/04/set-ulimit-parameters-on-ubuntu/). 
 
 ### Running
 Start up the Deadbird server by running `npm start`. This'll start the web server on port 3000 and the socket.io server on port 8080. All of the fetchers will be running in the background at the intervals specified in `settings.json`.
