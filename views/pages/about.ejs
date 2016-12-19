@@ -7,15 +7,15 @@
   <% include ../snippets/navbar %>
   <div id="deadbirdMain">
     <h1>About</h1><br>
-    <p class="info">Deadbird tracks the tweets of Twitter users to see if they have been deleted. If a tweet has been deleted, it'll be displayed on the user's timeline as well as the homepage/Stream.<br><br>
-    You can click on tweets on a user's timeline or stream to be taken to the full tweet page along with replies to the tweet at the time it was saved. You can also click on the columns on graphs to view the tweets that were deleted on that day.</p></p><br>
+    <p class="info center">Deadbird tracks the tweets of Twitter users to see if they have been deleted. If a tweet has been deleted, it'll be displayed on the user's timeline as well as the homepage/Stream.<br><br>
+    You can click on tweets on a user's timeline or stream to be taken to the full tweet page along with replies to the tweet at the time it was saved.</p></p><br>
     <h1>Credits</h1><br>
     <p>Dead Bird logo by Luis Prado from the Noun Project</p><br>
     <div class="row">
       <div class="col-xs-6 col-md-4 statlog">
         <h3 class='deadbirdStatTitle'>Fetcher</h3>
         <textarea id='fetcherLog'>Loading...</textarea>
-        <p>The fetcher continuously checks for new tweets made by users in the database.<br><br>When it finds a new tweet, it parses and saves the tweet to the database.</p>
+        <p>The fetcher continuously checks for new tweets made by users.<br><br>When it finds a new tweet, it parses and extracts the relevant html and saves tweet meta data to the database.</p>
       </div>
       <div class="col-xs-6 col-md-4 statlog">
         <h3 class='deadbirdStatTitle'>Checker</h3>
