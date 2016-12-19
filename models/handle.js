@@ -109,6 +109,7 @@ module.exports = {
           normalizeWhitespace: true
         });
 
+
         // Empty time line and remove extraneous info
         $('.Grid-cell .u-lg-size2of3').empty();
         $('.Grid-cell .u-size1of3').remove();
@@ -128,6 +129,39 @@ module.exports = {
 
         // Replace home link
         $('a[data-nav="home"]').attr('href', settings.general.basehref);
+
+        // Remove links from ProfileNav
+        $('.ProfileNav-item a').attr('href', null);
+
+        // Update title
+        $('title').html($('title').html().slice(0,-7) + "Deadbird");
+
+        // Inject custom tweets/stats buttons into profilenav
+        $('.ProfileNav-list').children().remove();
+        $('.ProfileNav-list').append(
+          `<li class="ProfileNav-item ProfileNav-item--tweets is-active totalTweets">
+            <a class="ProfileNav-stat ProfileNav-stat--link u-borderUserColor u-textCenter js-tooltip js-nav" title="" data-nav="total" tabindex="0">
+            <span class="ProfileNav-label">Total</span> <span class="ProfileNav-value" data-is-compact="true">VALUE</span>
+            </a>
+          </li>`
+        );
+
+        $('.ProfileNav-list').append(
+          `<li class="ProfileNav-item ProfileNav-item--tweets deletedTweets">
+            <a class="ProfileNav-stat ProfileNav-stat--link u-borderUserColor u-textCenter js-tooltip js-nav" title="" data-nav="deleted" tabindex="0">
+            <span class="ProfileNav-label">Deleted</span> <span class="ProfileNav-value" data-is-compact="true">VALUE</span>
+            </a>
+          </li>`
+        );
+
+        $('.ProfileNav-list').append(
+          `<li class="ProfileNav-item ProfileNav-item--tweets">
+            <a href="stats/${handle.handle}" class="ProfileNav-stat ProfileNav-stat--link u-borderUserColor u-textCenter js-tooltip js-nav" title="View stats" data-nav="tweets" tabindex="0">
+            <span class="ProfileNav-label">Stats</span> <span class="ProfileNav-value" data-is-compact="true">View stats</span>
+            </a>
+          </li>`
+        );
+
 
         // Fix stream with proper div
         $('.Grid-cell .u-lg-size2of3').append(`

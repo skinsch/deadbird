@@ -251,19 +251,41 @@ module.exports = {
   },
   genTweetPage(handle, id) {
     return new Promise((resolve, reject) => {
-      Handle.getTemplate(handle).then(template => {
-        this.getTweetTxt(id).then(tweet => {
-          if (tweet.tweet === undefined) return reject("TWEET_NOT_EXIST");
 
-          $ = cheerio.load(template.template);
-          $('.PermalinkOverlay').css('display', 'block');
-          $('.PermalinkOverlay-modal').prepend(tweet.tweet).html();
-          $('head').append("<base href='" + settings.general.basehref + "'>")
-          $('body').append("<script src='js/jquery.js'></script>")
-          $('body').append("<script src='js/moment.min.js'></script>")
-          $('body').append("<script src='js/general.js'></script>")
-          resolve($.html());
-        });
+      let handleRes, template, tweet;
+      async.series([
+        cb => Handle.getCond({handle}).then(data => {
+          handleRes = data;
+          cb(null);
+        }),
+        cb => Handle.getTemplate(handle).then(data => {
+          template = data;
+          cb(template.template === undefined ? "HANDLE_NOT_EXIST" : null);
+        }),
+        cb => this.getTweetTxt(id).then(data => {
+          tweet = data;
+          cb(null);
+        })
+      ], err => {
+        if (err) return reject(err);
+
+        if (tweet.tweet === undefined) return reject("TWEET_NOT_EXIST");
+        $ = cheerio.load(template.template);
+        $('.PermalinkOverlay').css('display', 'block');
+        $('.PermalinkOverlay-modal').prepend(tweet.tweet).html();
+
+        // Inject stats
+        $('.deletedTweets a').attr('title', `${handleRes.deleted} Deleted Tweets`);
+        $('.deletedTweets .ProfileNav-value').html(handleRes.deleted);
+
+        $('.totalTweets a').attr('title', `${handleRes.total} Total Tweets`);
+        $('.totalTweets .ProfileNav-value').html(handleRes.total);
+
+        $('head').append("<base href='" + settings.general.basehref + "'>")
+        $('body').append("<script src='js/jquery.js'></script>")
+        $('body').append("<script src='js/moment.min.js'></script>")
+        $('body').append("<script src='js/general.js'></script>")
+        resolve($.html());
       });
     });
   },
@@ -297,8 +319,14 @@ module.exports = {
 
         // Inject pagination
         $('#deadbirdPaginationStat').html(`${handleRes.deleted} total deleted tweets`);
-        $('#deadbirdPaginationControl').html(`<a href="${handle}/?page=1">&lt;&lt;</a> <a href="${handle}/?page=${page === 1 ? 1 : page-1}">&lt;</a> Page ${page} of ${totalPages} <a href="${handle}/?page=${page === totalPages ? totalPages : page+1}">&gt;</a> <a href="${handle}/?page=${totalPages}">&gt;&gt;</a>`);
+        $('#deadbirdPaginationControl').html(`<a href="${handleRes.handle}/?page=1">&lt;&lt;</a> <a href="${handleRes.handle}/?page=${page === 1 ? 1 : page-1}">&lt;</a> Page ${page} of ${totalPages} <a href="${handleRes.handle}/?page=${page === totalPages ? totalPages : page+1}">&gt;</a> <a href="${handleRes.handle}/?page=${totalPages}">&gt;&gt;</a>`);
 
+        // Inject stats
+        $('.deletedTweets a').attr('title', `${handleRes.deleted} Deleted Tweets`);
+        $('.deletedTweets .ProfileNav-value').html(handleRes.deleted);
+
+        $('.totalTweets a').attr('title', `${handleRes.total} Total Tweets`);
+        $('.totalTweets .ProfileNav-value').html(handleRes.total);
 
         async.eachLimit(tweets, 1, (tweet, cb) => {
           this.getTweetTxt(tweet.tweetid).then(tweet => {
