@@ -43,6 +43,7 @@ function main() {
   let lastTime = new Date().getTime();
 
   async.eachLimit(handles, 15, (user, cb) => {
+    if (settings.general.limitedRam && completed % 15 === 0) gc();
     let newTweets;
 
     getTweets(user, tweets => {

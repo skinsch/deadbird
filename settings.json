@@ -13,7 +13,8 @@
     "indexCacheInterval": 900,
     "templateRestInterval": 86400,
     "acceptingNewUsers": true,
-    "maxUsers": 500
+    "maxUsers": 500,
+    "limitedRam": false
   },
   "db": {
     "host": "localhost",

@@ -13,23 +13,26 @@ const http         = require('http');
 const async        = require('async');
 const schedule     = require('node-schedule');
 const session      = require('express-session');
-const moment       = require('moment');
 
 const db     = require('./models/db');
 const Handle = require('./models/handle');
 const Tweet  = require('./models/tweet');
 
-const utils = require('./utils')
+const helpers  = require('./helpers');
+const utils    = require('./utils')
 const settings = utils.settings;
 
 const io = require('socket.io')(settings.general.socket);
-let data = {
+require('./socket')(io);
+
+utils.set('data', {
   fetcher: {},
   checker: {},
   template: {}
-};
+});
 
-require('./socket')(io, data);
+// Easy local reference to utils -> data
+let data = utils.get('data');
 
 const index = require('./routes/index');
 
@@ -62,7 +65,7 @@ app.use(session({
 app.use(flash());
 
 app.use('*', (req, res, next) => {
-  app.set('originalUrl', req.originalUrl);
+  utils.set('originalUrl', req.originalUrl);
 
   let info    = req.flash('info');
   let warning = req.flash('warning');
@@ -78,7 +81,7 @@ app.use('*', (req, res, next) => {
     messages = "";
   }
 
-  app.set('messages', messages);
+  utils.set('messages', messages);
   next();
 });
 
@@ -109,7 +112,12 @@ function spawner(mode) {
   return new Promise((resolve, reject) => {
     data[mode] = {};
 
-    const spawned = spawn('node', [scripts[mode]]);
+    let spawned;
+    if (settings.general.limitedRam) {
+      spawned = spawn('node', ['--expose-gc', scripts[mode]]);
+    } else {
+      spawned = spawn('node', ['--expose-gc', scripts[mode]]);
+    }
 
     spawned.stdout.on('data', spawnedData => {
       // Sometimes the JSON output is garbled because of two
@@ -250,10 +258,10 @@ function initStats(cb) {
     // Cache stats for graphs
     cb => {
       console.log("Caching initial stats...");
-      updateStats(() => {
+      helpers.updateStats(() => {
         console.log("Finished caching stats");
         schedule.scheduleJob('0 */15 * * * *', () => {
-          updateStats();
+          helpers.updateStats();
         });
         cb();
       });
@@ -264,10 +272,10 @@ function initStats(cb) {
     // Run this after the checker loop finishes
     cb => {
       console.log("Caching index...");
-      cacheIndex(() => {
+      helpers.cacheIndex(() => {
         console.log("Finished caching index");
         setInterval(() => {
-          cacheIndex();
+          helpers.cacheIndex();
         }, settings.general.indexCacheInterval * 1000);
         cb();
       });
@@ -277,108 +285,6 @@ function initStats(cb) {
   ], () => {
     cb();
   });
-}
-
-function updateStats(cb=()=>{}) {
-  let start = new Date().getTime();
-  let stats = {};
-  Handle.getAll().then(handles => {
-    handles.unshift(null);
-
-    async.eachLimit(handles, 50, (handle, cb) => {
-      getStats(handle ? handle.id : null).then(stat => {
-        stats[handle ? handle.id : "all"] = stat;
-        cb();
-      });
-    }, () => {
-      app.set('stats', stats);
-      app.set('statUpdate', new Date().getTime());
-      app.set('dates', JSON.parse(JSON.stringify(stats['all'])).map((val, ind)=>moment(val.date.slice(0, 0-14)).format('MM/DD')).reverse());
-      cb();
-    });
-  });
-}
-
-function getStats(handle=null) {
-  return new Promise((resolve, reject) => {
-    let data = [];
-    let count = 0;
-
-    async.whilst(
-      () => count < 30,
-      cb => {
-        daysAgo(count, handle).then(row => {
-          count++;
-          data.push(row[0]);
-          cb(null)
-        });
-      },
-      () => {
-        resolve(data);
-      }
-    );
-  });
-
-  function daysAgo(days, handle=null) {
-    return new Promise((resolve, reject) => {
-      if (days === 0) {
-        query = `SELECT (SELECT curdate()) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= curdate()${handle ? " AND handle = " + handle : ""}) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= curdate()${handle ? " AND handle = " + handle : ""}) AS added`;
-      } else {
-        query = `SELECT (SELECT DATE_SUB(curdate(), INTERVAL ${days} DAY)) AS date,(SELECT COUNT(*) FROM tweets WHERE DATE(deletedate) = DATE_SUB(curdate(), INTERVAL ${days} DAY)${handle ? " AND handle = " + handle : ""}) AS deleted, (SELECT COUNT(*) FROM tweets WHERE DATE(date) = (SELECT CURDATE() - INTERVAL ${days} DAY)${handle ? " AND handle = " + handle : ""}) AS added`;
-      }
-      db.connection.query(query, (err, data) => {
-        resolve(data);
-      });
-    });
-  }
-}
-
-function cacheIndex(cb=()=>{}) {
-  let cache = {
-    index: {}
-  };
-
-  Tweet.getAllDeleted(null).then(data => {
-    let total = data.total;
-    let totalPages = Math.ceil(total/25);
-
-    let count = 0;
-    async.whilst(
-      function() { return count < totalPages; },
-      function(innercb) {
-        getPage(++count, () => {
-          innercb(null, count);
-        });
-      },
-      function (err, n) {
-        utils.set('cache', cache);
-        cb();
-      }
-    );
-  });
-
-  function getPage(page, cb) {
-    let tweets, totalTweets;
-    async.parallel([
-      cb => Tweet.getAllDeleted((page*25)-25).then(data => {
-        tweets = data.tweets;
-        totalTweets = data.total;
-        cb();
-      })
-    ], () => {
-      let tweetData = [];
-
-      async.eachLimit(tweets, 1, (tweet, cb) => {
-        Tweet.getTweetTxt(tweet.tweetid).then(data => {
-          tweetData.push(data);
-          cb();
-        });
-      }, () => {
-        cache.index[page] = {tweets: tweetData, totalTweets};
-        cb();
-      });
-    });
-  }
 }
 
 /////////////

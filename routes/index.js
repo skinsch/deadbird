@@ -29,9 +29,9 @@ async.parallel([
 function main() {
 
   router.all('*', (req, res, next) => {
-    originalUrl = req.app.get('originalUrl');
-    messages    = req.app.get('messages');
-    dates       = req.app.get('dates');
+    originalUrl = utils.get('originalUrl');
+    messages    = utils.get('messages');
+    dates       = utils.get('dates');
     if (req.url.slice(0, 5) === '/user') {
       Handle.getAll().then(data => {
         if (!utils.acceptingNewUsers() || data.length >= utils.maxNewUsers()) {
@@ -63,7 +63,7 @@ function main() {
 
   router.get('/stats', (req, res, next) => {
     Handle.getAll('deleted').then(handles => {
-      res.render('stats', {title: "Stats", messages, handle: undefined, stats: JSON.stringify(req.app.get('stats')['all']), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
+      res.render('stats', {title: "Stats", messages, handle: undefined, stats: JSON.stringify(utils.get('stats')['all']), statUpdate: utils.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
     });
   });
 
@@ -90,7 +90,7 @@ function main() {
           cb();
         });
       }, () => {
-        res.render('statsStream', {title: `Stats on ${date}`, messages, date, handle: undefined, stats: JSON.stringify(req.app.get('stats')['all']), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, tweets: tweetData, totalTweets});
+        res.render('statsStream', {title: `Stats on ${date}`, messages, date, handle: undefined, stats: JSON.stringify(utils.get('stats')['all']), statUpdate: utils.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, tweets: tweetData, totalTweets});
       });
     });
   });
@@ -132,7 +132,7 @@ function main() {
           cb();
         });
       }, () => {
-        res.render('statsStream', {title: `Stats for ${handleIn} on ${date}`, messages, date, handle: handleIn, stats: JSON.stringify(req.app.get('stats')[handle.id]), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, tweets: tweetData, totalTweets});
+        res.render('statsStream', {title: `Stats for ${handleIn} on ${date}`, messages, date, handle: handleIn, stats: JSON.stringify(utils.get('stats')[handle.id]), statUpdate: utils.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, tweets: tweetData, totalTweets});
       });
     });
   });
@@ -199,7 +199,7 @@ function main() {
         return res.redirect('/stats');
       }
 
-      res.render('userStats', {title: `User Stats for ${handle.handle}`, handle: handle.handle, messages, stats: JSON.stringify(req.app.get('stats')[handle.id]), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+      res.render('userStats', {title: `User Stats for ${handle.handle}`, handle: handle.handle, messages, stats: JSON.stringify(utils.get('stats')[handle.id]), statUpdate: utils.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
     });
   });
 
