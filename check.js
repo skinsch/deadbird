@@ -83,7 +83,7 @@ q.drain = () => {
 
 
 db.init(() => {
-  Tweet.getAllAvailable((process.argv[2] || 7)).then(tweets => {
+  Tweet.getAllAvailable((process.argv[2] || settings.general.checkerDaysBack)).then(tweets => {
     startTotal = tweets.length;
     q.push(tweets);
   });
