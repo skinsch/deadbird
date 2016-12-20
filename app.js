@@ -17,6 +17,7 @@ const moment       = require('moment');
 
 const db     = require('./models/db');
 const Handle = require('./models/handle');
+const Tweet  = require('./models/tweet');
 
 const settings = require('./utils').settings;
 
@@ -209,12 +210,27 @@ function templateLoop() {
 // Stats cacher //
 
 function initStats(cb) {
-  console.log("Caching initial stats...");
-  updateStats(() => {
-    console.log("Finished caching stats");
-    schedule.scheduleJob('0 */15 * * * *', () => {
-      updateStats();
-    });
+  async.series([
+    cb => {
+      console.log("Caching initial stats...");
+      updateStats(() => {
+        console.log("Finished caching stats");
+        schedule.scheduleJob('0 */15 * * * *', () => {
+          updateStats();
+        });
+        cb();
+      });
+    },
+    cb => {
+      cacheIndex(() => {
+        console.log("Finished caching index");
+        schedule.scheduleJob('0 */15 * * * *', () => {
+          cacheIndex();
+        });
+        cb();
+      });
+    }
+  ], () => {
     cb();
   });
 }
@@ -268,6 +284,55 @@ function getStats(handle=null) {
       }
       db.connection.query(query, (err, data) => {
         resolve(data);
+      });
+    });
+  }
+}
+
+function cacheIndex(cb=()=>{}) {
+  let cache = {
+    index: {}
+  };
+
+  Tweet.getAllDeleted(null).then(data => {
+    let total = data.total;
+    let totalPages = Math.ceil(total/25);
+
+    let count = 0;
+    async.whilst(
+      function() { return count < totalPages; },
+      function(innercb) {
+        getPage(++count, () => {
+          console.log('done with ' + count);
+          innercb(null, count);
+        });
+      },
+      function (err, n) {
+        app.set('cache', cache);
+        cb();
+      }
+    );
+  });
+
+  function getPage(page, cb) {
+    let tweets, totalTweets;
+    async.parallel([
+      cb => Tweet.getAllDeleted((page*25)-25).then(data => {
+        tweets = data.tweets;
+        totalTweets = data.total;
+        cb();
+      })
+    ], () => {
+      let tweetData = [];
+
+      async.eachLimit(tweets, 5, (tweet, cb) => {
+        Tweet.getTweetTxt(tweet.tweetid).then(data => {
+          tweetData.push(data);
+          cb();
+        });
+      }, () => {
+        cache.index[page] = {tweets: tweetData, totalTweets};
+        cb();
       });
     });
   }

@@ -4,8 +4,10 @@ const express  = require('express');
 const cheerio  = require('cheerio');
 const router   = express.Router();
 const request  = require('request');
+const schedule = require('node-schedule');
 const utils    = require('../utils');
 const settings = utils.settings;
+const _        = require('lodash');
 
 const Tweet  = require('../models/tweet');
 const Handle = require('../models/handle');
@@ -48,26 +50,9 @@ function main() {
   router.get('/', function(req, res, next) {
     let page = Number((req.query.page || 1));
     if (page < 1) page = 1;
+    if (req.app.get('cache').index[page] === undefined) return res.redirect('/');
 
-    let tweets, totalTweets;
-    async.parallel([
-      cb => Tweet.getAllDeleted((page*25)-25).then(data => {
-        tweets = data.tweets;
-        totalTweets = data.total;
-        cb();
-      })
-    ], () => {
-      let tweetData = [];
-
-      async.eachLimit(tweets, 1, (tweet, cb) => {
-        Tweet.getTweetTxt(tweet.tweetid).then(data => {
-          tweetData.push(data);
-          cb();
-        });
-      }, () => {
-        res.render('stream', {title: "Home", messages, autocomplete, socket, basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets});
-      });
-    });
+    res.render('stream', _.merge(req.app.get('cache').index[page], {title: "Home", messages, autocomplete, socket, basehref: settings.general.basehref, originalUrl}));
   });
 
   router.get('/leaderboards', (req, res, next) => {
@@ -99,7 +84,7 @@ function main() {
     ], err => {
       let tweetData = [];
 
-      async.eachLimit(tweets, 1, (tweet, cb) => {
+      async.eachLimit(tweets, 5, (tweet, cb) => {
         Tweet.getTweetTxt(tweet.tweetid).then(data => {
           tweetData.push(data);
           cb();
@@ -141,7 +126,7 @@ function main() {
 
       let tweetData = [];
 
-      async.eachLimit(tweets, 1, (tweet, cb) => {
+      async.eachLimit(tweets, 5, (tweet, cb) => {
         Tweet.getTweetTxt(tweet.tweetid).then(data => {
           tweetData.push(data);
           cb();
