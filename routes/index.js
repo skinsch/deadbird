@@ -250,11 +250,7 @@ function updateAutoComplete(cb) {
 }
 
 function ipBlacklist(ip, mode='lookup') {
-  if (mode === 'lookup') {
-    return ips[ip] === undefined;
-  } else {
-    ips[ip] = true;
-  }
+  return mode === 'lookup' ? ips[ip] === undefined : ips[ip] = true;
 }
 
 module.exports = router;

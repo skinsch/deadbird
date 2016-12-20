@@ -1,12 +1,15 @@
-const fs       = require('fs');
-const cheerio  = require('cheerio');
-const Promise  = require('bluebird');
-const moment   = require('moment');
-const _        = require('lodash');
-const request  = require('request');
-const settings = require('./settings.json');
+const fs           = require('fs');
+const util         = require('util');
+const cheerio      = require('cheerio');
+const Promise      = require('bluebird');
+const moment       = require('moment');
+const _            = require('lodash');
+const request      = require('request');
+const EventEmitter = require('events').EventEmitter;
+const settings     = require('./settings.json');
 
 let store = {};
+let ee    = new EventEmitter();
 
 module.exports = {
   pad(n, width, z) {
@@ -99,5 +102,14 @@ module.exports = {
   },
   get(key) {
     return store[key];
+  },
+  on(eventName, cb) {
+    ee.on(eventName, cb);
+  },
+  once(eventName, cb) {
+    ee.once(eventName, cb);
+  },
+  emit(eventName, data) {
+    ee.emit(eventName, data);
   }
 };

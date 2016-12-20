@@ -1,7 +1,6 @@
 const flash        = require('connect-flash');
 const express      = require('express');
 const path         = require('path');
-const spawn        = require('child_process').spawn;
 const Promise      = require('bluebird');
 const favicon      = require('serve-favicon');
 const logger       = require('morgan');
@@ -24,15 +23,7 @@ const settings = utils.settings;
 
 const io = require('socket.io')(settings.general.socket);
 require('./socket')(io);
-
-utils.set('data', {
-  fetcher: {},
-  checker: {},
-  template: {}
-});
-
-// Easy local reference to utils -> data
-let data = utils.get('data');
+require('./events');
 
 const index = require('./routes/index');
 
@@ -105,192 +96,7 @@ app.use((err, req, res, next) => {
   res.render('error');
 });
 
-// Spawners //
-function spawner(mode) {
-  let scripts = {fetcher: 'fetch', checker: 'check', template: 'getTemplate'};
-
-  return new Promise((resolve, reject) => {
-    data[mode] = {};
-
-    let spawned;
-    if (settings.general.limitedRam) {
-      spawned = spawn('node', ['--expose-gc', scripts[mode]]);
-    } else {
-      spawned = spawn('node', ['--expose-gc', scripts[mode]]);
-    }
-
-    spawned.stdout.on('data', spawnedData => {
-      // Sometimes the JSON output is garbled because of two
-      // objects outputting at the same time.
-      try {
-        spawnedData = JSON.parse(spawnedData);
-      } catch(e) {
-        return;
-      }
-
-      if (mode === 'checker') {
-        if (spawnedData.text === undefined) {
-          // Update data
-          data[mode].status    = spawnedData.status;
-          data[mode].remaining = spawnedData.remaining;
-          data[mode].rate      = spawnedData.rate;
-          data[mode].eta       = spawnedData.eta;
-          data[mode].user      = spawnedData.user;
-          data[mode].url       = spawnedData.url;
-        } else {
-          data[mode] = {};
-          data[mode].text = spawnedData.text;
-        }
-      } else if (mode === 'fetcher') {
-        if (spawnedData.done === undefined) {
-          data[mode].status = spawnedData.status;
-          data[mode].user   = spawnedData.user;
-          data[mode].text   = spawnedData.text;
-        } else {
-          data[mode] = {};
-          data[mode].text = spawnedData.text;
-        }
-      } else if (mode === 'template') {
-        if (spawnedData.done === undefined) {
-          data[mode].status = spawnedData.status;
-          data[mode].text   = spawnedData.text;
-        } else {
-          data[mode] = {};
-          data[mode].text = spawnedData.text;
-        }
-      }
-    });
-
-    spawned.on('exit', err => {
-      if (err === null) resolve(true);
-      else resolve(false);
-    });
-  });
-}
-
-function checkerLoop() {
-  spawner('checker').then(fail => {
-    if (fail) checkerLoop();
-    else {
-      data['checker'].nextCheck = new Date().getTime() + settings.general.checkerRestInterval * 1000;
-      setTimeout(() => {
-        checkerLoop();
-      }, settings.general.checkerRestInterval * 1000);
-    }
-  });
-}
-
-function fetcherLoop() {
-  spawner('fetcher').then(fail => {
-    if (fail) fetcherLoop();
-    else {
-      data['fetcher'].nextCheck = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
-      setTimeout(() => {
-        fetcherLoop();
-      }, settings.general.fetcherRestInterval * 1000);
-    }
-  });
-}
-
-function templateLoop() {
-  spawner('template').then(fail => {
-    if (fail) templateLoop();
-    else {
-      data['template'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
-      setTimeout(() => {
-        templateLoop();
-      }, settings.general.templateRestInterval * 1000);
-    }
-  });
-}
-/////////////
-
-// Stats cacher //
-function initStats(cb) {
-  async.series([
-    // Start template -> checker
-    cb => {
-      let interval, item = 'template';
-      if (settings.general.retrieversEnabled) {
-        async.series([
-          cb => {
-            interval = setInterval(() => {
-              console.log(JSON.stringify(data[item]));
-            }, 1000);
-            cb();
-          },
-          cb => {
-            console.log("Starting template fetcher...")
-            spawner('template').then(() => {
-              console.log("Template fetcher done");
-              cb()
-            });
-          },
-          cb => {
-            item = 'checker';
-            console.log("Starting Checker...")
-            spawner('checker').then(() => {
-              console.log("Checker done");
-              cb()
-            });
-          }
-        ], () => {
-          clearInterval(interval);
-          // fetcher loop starts after template/checker finishes
-          // Manually start delay until official template/checker loop starts
-          fetcherLoop();
-
-          setTimeout(() => {
-            templateLoop();
-          }, settings.general.templateRestInterval * 1000);
-
-          setTimeout(() => {
-            checkerLoop();
-          }, settings.general.checkerRestInterval * 1000);
-
-          cb();
-        });
-      } else {
-        cb();
-      }
-    },
-
-    // Cache stats for graphs
-    cb => {
-      console.log("Caching initial stats...");
-      helpers.updateStats(() => {
-        console.log("Finished caching stats");
-        schedule.scheduleJob('0 */15 * * * *', () => {
-          helpers.updateStats();
-        });
-        cb();
-      });
-    },
-
-
-    // Cache the index page
-    // Run this after the checker loop finishes
-    cb => {
-      console.log("Caching index...");
-      helpers.cacheIndex(() => {
-        console.log("Finished caching index");
-        setInterval(() => {
-          helpers.cacheIndex();
-        }, settings.general.indexCacheInterval * 1000);
-        cb();
-      });
-    }
-
-  // Prep is done, we can now start the server
-  ], () => {
-    cb();
-  });
-}
-
-/////////////
-
 module.exports = {
   server,
-  app,
-  initStats
+  app
 };

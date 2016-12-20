@@ -1,12 +1,15 @@
-const async  = require('async');
-const moment = require('moment');
-const utils  = require('./utils')
+const async    = require('async');
+const moment   = require('moment');
+const utils    = require('./utils')
+const schedule = require('node-schedule');
+const spawn    = require('child_process').spawn;
+const settings = utils.settings;
 
 const db     = require('./models/db');
 const Tweet  = require('./models/tweet');
 const Handle = require('./models/handle');
 
-module.exports = {
+let helpers = {
   // Cache the index stream pages
   cacheIndex(cb=()=>{}) {
     let cache = {
@@ -21,9 +24,7 @@ module.exports = {
       async.whilst(
         function() { return count < totalPages; },
         function(innercb) {
-          getPage(++count, () => {
-            innercb(null, count);
-          });
+          getPage(++count, innercb.bind(this, null, count));
         },
         function (err, n) {
           utils.set('cache', cache);
@@ -88,9 +89,7 @@ module.exports = {
               cb(null)
             });
           },
-          () => {
-            resolve(data);
-          }
+          resolve.bind(this, data)
         );
       });
 
@@ -101,11 +100,185 @@ module.exports = {
           } else {
             query = `SELECT (SELECT DATE_SUB(curdate(), INTERVAL ${days} DAY)) AS date,(SELECT COUNT(*) FROM tweets WHERE DATE(deletedate) = DATE_SUB(curdate(), INTERVAL ${days} DAY)${handle ? " AND handle = " + handle : ""}) AS deleted, (SELECT COUNT(*) FROM tweets WHERE DATE(date) = (SELECT CURDATE() - INTERVAL ${days} DAY)${handle ? " AND handle = " + handle : ""}) AS added`;
           }
-          db.connection.query(query, (err, data) => {
-            resolve(data);
-          });
+          db.connection.query(query, (err, data) => resolve(data));
         });
       }
     }
-  }
+  },
+  initStats() {
+    let data = {
+      fetcher: {},
+      checker: {},
+      template: {}
+    };
+    utils.set('data', data);
+
+    async.series([
+      // Start template -> checker
+      cb => {
+        let interval, item = 'template';
+        if (settings.general.retrieversEnabled) {
+          async.series([
+
+            // Live status update...will implement charm in the future for nicer output
+            cb => {
+              interval = setInterval(() => {
+                console.log(JSON.stringify(data[item]));
+              }, 1000);
+              cb();
+            },
+            cb => {
+              console.log("Starting template fetcher...")
+              spawner('template').then(() => {
+                console.log("Template fetcher done");
+                cb()
+              });
+            },
+            cb => {
+              item = 'checker';
+              console.log("Starting Checker...")
+              spawner('checker').then(() => {
+                console.log("Checker done");
+                cb()
+              });
+            }
+          ], () => {
+            clearInterval(interval);
+
+            // Fetcher loop starts after template/checker finishes
+            // Manually start delay until official template/checker loop starts
+            fetcherLoop();
+
+            setTimeout(templateLoop, settings.general.templateRestInterval * 1000);
+            setTimeout(checkerLoop, settings.general.checkerRestInterval * 1000);
+            cb();
+          });
+        } else {
+          cb();
+        }
+      },
+
+      // Cache stats for graphs
+      cb => {
+        console.log("Caching initial stats...");
+        helpers.updateStats(() => {
+          console.log("Finished caching stats");
+          schedule.scheduleJob('0 */15 * * * *', helpers.updateStats);
+          cb();
+        });
+      },
+
+      cb => {
+        utils.emit("indexCacherStart");
+        utils.once("indexCacherDone", cb);
+      }
+
+    // Prep is done, we can now start the server
+    ], () => {
+      utils.emit('initStatsDone');
+    });
+  },
 };
+
+// Spawners //
+function spawner(mode) {
+  let data = utils.get('data');
+  let scripts = {fetcher: 'fetch', checker: 'check', template: 'getTemplate'};
+
+  return new Promise((resolve, reject) => {
+    data[mode] = {};
+
+    let spawned;
+    if (settings.general.limitedRam) {
+      spawned = spawn('node', ['--expose-gc', scripts[mode]]);
+    } else {
+      spawned = spawn('node', [scripts[mode]]);
+    }
+
+    spawned.stdout.on('data', spawnedData => {
+      // Sometimes the JSON output is garbled because of two
+      // objects outputting at the same time.
+      try {
+        spawnedData = JSON.parse(spawnedData);
+      } catch(e) {
+        return;
+      }
+
+      if (mode === 'checker') {
+        if (spawnedData.text === undefined) {
+          // Update data
+          data[mode].status    = spawnedData.status;
+          data[mode].remaining = spawnedData.remaining;
+          data[mode].rate      = spawnedData.rate;
+          data[mode].eta       = spawnedData.eta;
+          data[mode].user      = spawnedData.user;
+          data[mode].url       = spawnedData.url;
+        } else {
+          data[mode] = {};
+          data[mode].text = spawnedData.text;
+        }
+      } else if (mode === 'fetcher') {
+        if (spawnedData.done === undefined) {
+          data[mode].status = spawnedData.status;
+          data[mode].user   = spawnedData.user;
+          data[mode].text   = spawnedData.text;
+        } else {
+          data[mode] = {};
+          data[mode].text = spawnedData.text;
+        }
+      } else if (mode === 'template') {
+        if (spawnedData.done === undefined) {
+          data[mode].status = spawnedData.status;
+          data[mode].text   = spawnedData.text;
+        } else {
+          data[mode] = {};
+          data[mode].text = spawnedData.text;
+        }
+      }
+    });
+
+    spawned.on('exit', err => {
+      if (err === null) resolve(true);
+      else resolve(false);
+    });
+  });
+}
+
+function checkerLoop() {
+  let data = utils.get('data');
+
+  spawner('checker').then(fail => {
+    if (fail) checkerLoop();
+    else {
+      data['checker'].nextCheck = new Date().getTime() + settings.general.checkerRestInterval * 1000;
+      utils.emit("indexCacherStart");
+      setTimeout(checkerLoop, settings.general.checkerRestInterval * 1000);
+    }
+  });
+}
+
+function fetcherLoop() {
+  let data = utils.get('data');
+
+  spawner('fetcher').then(fail => {
+    if (fail) fetcherLoop();
+    else {
+      data['fetcher'].nextCheck = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
+      setTimeout(fetcherLoop, settings.general.fetcherRestInterval * 1000);
+    }
+  });
+}
+
+function templateLoop() {
+  let data = utils.get('data');
+
+  spawner('template').then(fail => {
+    if (fail) templateLoop();
+    else {
+      data['template'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
+      setTimeout(templateLoop, settings.general.templateRestInterval * 1000);
+    }
+  });
+}
+
+module.exports = helpers;

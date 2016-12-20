@@ -1,8 +1,10 @@
-const server    = require('./app').server;
-const app       = require('./app').app;
-const initStats = require('./app').initStats;
+const server  = require('./app').server;
+const app     = require('./app').app;
+const utils   = require('./utils')
+const helpers = require('./helpers');
 
-const db = require('./models/db').init(() => initStats(() => {
+const db = require('./models/db').init(helpers.initStats);
+utils.once('initStatsDone', () => {
 
   server.listen(app.get('port'));
   server.once('error', error => {
@@ -30,4 +32,4 @@ const db = require('./models/db').init(() => initStats(() => {
   });
 
   process.title = "Deadbird_Server";
-}));
+});
