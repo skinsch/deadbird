@@ -261,14 +261,13 @@ function initStats(cb) {
 
     // Cache the index page
     // Run this after the checker loop finishes
-    // and make sure it is the same interval as checker
     cb => {
       console.log("Caching index...");
       cacheIndex(() => {
         console.log("Finished caching index");
-        setTimeout(() => {
+        setInterval(() => {
           cacheIndex();
-        }, settings.general.checkerRestInterval * 1000);
+        }, settings.general.indexCacheInterval * 1000);
         cb();
       });
     }

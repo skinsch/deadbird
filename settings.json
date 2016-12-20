@@ -9,6 +9,7 @@
     "retrieversEnabled": true,
     "fetcherRestInterval": 0,
     "checkerRestInterval": 900,
+    "indexCacheInterval": 900,
     "templateRestInterval": 86400,
     "acceptingNewUsers": true,
     "maxUsers": 500
