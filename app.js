@@ -19,7 +19,8 @@ const db     = require('./models/db');
 const Handle = require('./models/handle');
 const Tweet  = require('./models/tweet');
 
-const settings = require('./utils').settings;
+const utils = require('./utils')
+const settings = utils.settings;
 
 const io = require('socket.io')(settings.general.socket);
 let data = {
@@ -350,7 +351,7 @@ function cacheIndex(cb=()=>{}) {
         });
       },
       function (err, n) {
-        app.set('cache', cache);
+        utils.set('cache', cache);
         cb();
       }
     );
@@ -367,7 +368,7 @@ function cacheIndex(cb=()=>{}) {
     ], () => {
       let tweetData = [];
 
-      async.eachLimit(tweets, 5, (tweet, cb) => {
+      async.eachLimit(tweets, 1, (tweet, cb) => {
         Tweet.getTweetTxt(tweet.tweetid).then(data => {
           tweetData.push(data);
           cb();

@@ -328,7 +328,7 @@ module.exports = {
         $('.totalTweets a').attr('title', `${handleRes.total} Total Tweets`);
         $('.totalTweets .ProfileNav-value').html(handleRes.total);
 
-        async.eachLimit(tweets, 5, (tweet, cb) => {
+        async.eachLimit(tweets, 1, (tweet, cb) => {
           this.getTweetTxt(tweet.tweetid).then(tweet => {
             htmlTweets += `
             <li class="js-stream-item stream-item stream-item" data-item-type="tweet" data-deleteTime="${tweet.info.deleteDate}">

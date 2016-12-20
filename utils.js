@@ -6,6 +6,8 @@ const _        = require('lodash');
 const request  = require('request');
 const settings = require('./settings.json');
 
+let store = {};
+
 module.exports = {
   pad(n, width, z) {
     z = z || '0';
@@ -116,5 +118,11 @@ module.exports = {
   maxNewUsers() {
     let settings = JSON.parse(fs.readFileSync('./settings.json', 'utf8'));
     return settings.general.maxUsers;
+  },
+  set(key, value) {
+    store[key] = value;
+  },
+  get(key) {
+    return store[key];
   }
 };

@@ -50,9 +50,9 @@ function main() {
   router.get('/', function(req, res, next) {
     let page = Number((req.query.page || 1));
     if (page < 1) page = 1;
-    if (req.app.get('cache').index[page] === undefined) return res.redirect('/');
+    if (utils.get('cache').index[page] === undefined) return res.redirect('/');
 
-    res.render('stream', _.merge(req.app.get('cache').index[page], {title: "Home", messages, autocomplete, socket, basehref: settings.general.basehref, originalUrl}));
+    res.render('stream', _.merge(utils.get('cache').index[page], {title: "Home", messages, autocomplete, socket, basehref: settings.general.basehref, originalUrl}));
   });
 
   router.get('/leaderboards', (req, res, next) => {
@@ -84,7 +84,7 @@ function main() {
     ], err => {
       let tweetData = [];
 
-      async.eachLimit(tweets, 5, (tweet, cb) => {
+      async.eachLimit(tweets, 1, (tweet, cb) => {
         Tweet.getTweetTxt(tweet.tweetid).then(data => {
           tweetData.push(data);
           cb();
@@ -126,7 +126,7 @@ function main() {
 
       let tweetData = [];
 
-      async.eachLimit(tweets, 5, (tweet, cb) => {
+      async.eachLimit(tweets, 1, (tweet, cb) => {
         Tweet.getTweetTxt(tweet.tweetid).then(data => {
           tweetData.push(data);
           cb();
