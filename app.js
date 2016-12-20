@@ -159,17 +159,6 @@ function spawner(mode) {
   });
 }
 
-if (settings.general.retrieversEnabled) {
-  spawner('template').then(() => {
-    checkerLoop();
-    fetcherLoop();
-
-    setTimeout(() => {
-      templateLoop();
-    }, settings.general.templateRestInterval * 1000);
-  });
-}
-
 function checkerLoop() {
   spawner('checker').then(fail => {
     if (fail) checkerLoop();
@@ -208,9 +197,56 @@ function templateLoop() {
 /////////////
 
 // Stats cacher //
-
 function initStats(cb) {
   async.series([
+    // Start template -> checker
+    cb => {
+      let interval, item = 'template';
+      if (settings.general.retrieversEnabled) {
+        async.series([
+          cb => {
+            interval = setInterval(() => {
+              console.log(JSON.stringify(data[item]));
+            }, 1000);
+            cb();
+          },
+          cb => {
+            console.log("Starting template fetcher...")
+            spawner('template').then(() => {
+              console.log("Template fetcher done");
+              cb()
+            });
+          },
+          cb => {
+            item = 'checker';
+            console.log("Starting Checker...")
+            spawner('checker').then(() => {
+              console.log("Checker done");
+              cb()
+            });
+          }
+        ], () => {
+          clearInterval(interval);
+          // fetcher loop starts after template/checker finishes
+          // Manually start delay until official template/checker loop starts
+          fetcherLoop();
+
+          setTimeout(() => {
+            templateLoop();
+          }, settings.general.templateRestInterval * 1000);
+
+          setTimeout(() => {
+            checkerLoop();
+          }, settings.general.checkerRestInterval * 1000);
+
+          cb();
+        });
+      } else {
+        cb();
+      }
+    },
+
+    // Cache stats for graphs
     cb => {
       console.log("Caching initial stats...");
       updateStats(() => {
@@ -221,15 +257,23 @@ function initStats(cb) {
         cb();
       });
     },
+
+
+    // Cache the index page
+    // Run this after the checker loop finishes
+    // and make sure it is the same interval as checker
     cb => {
+      console.log("Caching index...");
       cacheIndex(() => {
         console.log("Finished caching index");
-        schedule.scheduleJob('0 */15 * * * *', () => {
+        setTimeout(() => {
           cacheIndex();
-        });
+        }, settings.general.checkerRestInterval * 1000);
         cb();
       });
     }
+
+  // Prep is done, we can now start the server
   ], () => {
     cb();
   });
@@ -303,7 +347,6 @@ function cacheIndex(cb=()=>{}) {
       function() { return count < totalPages; },
       function(innercb) {
         getPage(++count, () => {
-          console.log('done with ' + count);
           innercb(null, count);
         });
       },
