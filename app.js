@@ -1,7 +1,6 @@
 const flash        = require('connect-flash');
 const express      = require('express');
 const path         = require('path');
-const spawn        = require('child_process').spawn;
 const Promise      = require('bluebird');
 const favicon      = require('serve-favicon');
 const logger       = require('morgan');
@@ -13,21 +12,18 @@ const http         = require('http');
 const async        = require('async');
 const schedule     = require('node-schedule');
 const session      = require('express-session');
-const moment       = require('moment');
 
 const db     = require('./models/db');
 const Handle = require('./models/handle');
+const Tweet  = require('./models/tweet');
 
-const settings = require('./utils').settings;
+const helpers  = require('./helpers');
+const utils    = require('./utils')
+const settings = utils.settings;
 
 const io = require('socket.io')(settings.general.socket);
-let data = {
-  fetcher: {},
-  checker: {},
-  template: {}
-};
-
-require('./socket')(io, data);
+require('./socket')(io);
+require('./events');
 
 const index = require('./routes/index');
 
@@ -60,7 +56,7 @@ app.use(session({
 app.use(flash());
 
 app.use('*', (req, res, next) => {
-  app.set('originalUrl', req.originalUrl);
+  utils.set('originalUrl', req.originalUrl);
 
   let info    = req.flash('info');
   let warning = req.flash('warning');
@@ -76,7 +72,7 @@ app.use('*', (req, res, next) => {
     messages = "";
   }
 
-  app.set('messages', messages);
+  utils.set('messages', messages);
   next();
 });
 
@@ -100,183 +96,7 @@ app.use((err, req, res, next) => {
   res.render('error');
 });
 
-// Spawners //
-function spawner(mode) {
-  let scripts = {fetcher: 'fetch', checker: 'check', template: 'getTemplate'};
-
-  return new Promise((resolve, reject) => {
-    data[mode] = {};
-
-    const spawned = spawn('node', [scripts[mode]]);
-
-    spawned.stdout.on('data', spawnedData => {
-      // Sometimes the JSON output is garbled because of two
-      // objects outputting at the same time.
-      try {
-        spawnedData = JSON.parse(spawnedData);
-      } catch(e) {
-        return;
-      }
-
-      if (mode === 'checker') {
-        if (spawnedData.text === undefined) {
-          // Update data
-          data[mode].status    = spawnedData.status;
-          data[mode].remaining = spawnedData.remaining;
-          data[mode].rate      = spawnedData.rate;
-          data[mode].eta       = spawnedData.eta;
-          data[mode].user      = spawnedData.user;
-          data[mode].url       = spawnedData.url;
-        } else {
-          data[mode] = {};
-          data[mode].text = spawnedData.text;
-        }
-      } else if (mode === 'fetcher') {
-        if (spawnedData.done === undefined) {
-          data[mode].status = spawnedData.status;
-          data[mode].user   = spawnedData.user;
-          data[mode].text   = spawnedData.text;
-        } else {
-          data[mode] = {};
-          data[mode].text = spawnedData.text;
-        }
-      } else if (mode === 'template') {
-        if (spawnedData.done === undefined) {
-          data[mode].status = spawnedData.status;
-          data[mode].text   = spawnedData.text;
-        } else {
-          data[mode] = {};
-          data[mode].text = spawnedData.text;
-        }
-      }
-    });
-
-    spawned.on('exit', err => {
-      if (err === null) resolve(true);
-      else resolve(false);
-    });
-  });
-}
-
-if (settings.general.retrieversEnabled) {
-  spawner('template').then(() => {
-    checkerLoop();
-    fetcherLoop();
-
-    setTimeout(() => {
-      templateLoop();
-    }, settings.general.templateRestInterval * 1000);
-  });
-}
-
-function checkerLoop() {
-  spawner('checker').then(fail => {
-    if (fail) checkerLoop();
-    else {
-      data['checker'].nextCheck = new Date().getTime() + settings.general.checkerRestInterval * 1000;
-      setTimeout(() => {
-        checkerLoop();
-      }, settings.general.checkerRestInterval * 1000);
-    }
-  });
-}
-
-function fetcherLoop() {
-  spawner('fetcher').then(fail => {
-    if (fail) fetcherLoop();
-    else {
-      data['fetcher'].nextCheck = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
-      setTimeout(() => {
-        fetcherLoop();
-      }, settings.general.fetcherRestInterval * 1000);
-    }
-  });
-}
-
-function templateLoop() {
-  spawner('template').then(fail => {
-    if (fail) templateLoop();
-    else {
-      data['template'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
-      setTimeout(() => {
-        templateLoop();
-      }, settings.general.templateRestInterval * 1000);
-    }
-  });
-}
-/////////////
-
-// Stats cacher //
-
-function initStats(cb) {
-  console.log("Caching initial stats...");
-  updateStats(() => {
-    console.log("Finished caching stats");
-    schedule.scheduleJob('0 */15 * * * *', () => {
-      updateStats();
-    });
-    cb();
-  });
-}
-
-function updateStats(cb=()=>{}) {
-  let start = new Date().getTime();
-  let stats = {};
-  Handle.getAll().then(handles => {
-    handles.unshift(null);
-
-    async.eachLimit(handles, 50, (handle, cb) => {
-      getStats(handle ? handle.id : null).then(stat => {
-        stats[handle ? handle.id : "all"] = stat;
-        cb();
-      });
-    }, () => {
-      app.set('stats', stats);
-      app.set('statUpdate', new Date().getTime());
-      app.set('dates', JSON.parse(JSON.stringify(stats['all'])).map((val, ind)=>moment(val.date.slice(0, 0-14)).format('MM/DD')).reverse());
-      cb();
-    });
-  });
-}
-
-function getStats(handle=null) {
-  return new Promise((resolve, reject) => {
-    let data = [];
-    let count = 0;
-
-    async.whilst(
-      () => count < 30,
-      cb => {
-        daysAgo(count, handle).then(row => {
-          count++;
-          data.push(row[0]);
-          cb(null)
-        });
-      },
-      () => {
-        resolve(data);
-      }
-    );
-  });
-
-  function daysAgo(days, handle=null) {
-    return new Promise((resolve, reject) => {
-      if (days === 0) {
-        query = `SELECT (SELECT curdate()) AS date,(SELECT COUNT(*) FROM tweets WHERE deletedate >= curdate()${handle ? " AND handle = " + handle : ""}) AS deleted, (SELECT COUNT(*) FROM tweets WHERE date >= curdate()${handle ? " AND handle = " + handle : ""}) AS added`;
-      } else {
-        query = `SELECT (SELECT DATE_SUB(curdate(), INTERVAL ${days} DAY)) AS date,(SELECT COUNT(*) FROM tweets WHERE DATE(deletedate) = DATE_SUB(curdate(), INTERVAL ${days} DAY)${handle ? " AND handle = " + handle : ""}) AS deleted, (SELECT COUNT(*) FROM tweets WHERE DATE(date) = (SELECT CURDATE() - INTERVAL ${days} DAY)${handle ? " AND handle = " + handle : ""}) AS added`;
-      }
-      db.connection.query(query, (err, data) => {
-        resolve(data);
-      });
-    });
-  }
-}
-
-/////////////
-
 module.exports = {
   server,
-  app,
-  initStats
+  app
 };

@@ -36,6 +36,7 @@ $(() => {
   if (autocompleteUsers.length > 0) {
 
     $("#deadbirdSearch").autocomplete({
+      delay: 0,
       source: autocompleteUsers,
       select: (event, ui) => {
         $("#deadbirdSearch").val(ui.item.label);

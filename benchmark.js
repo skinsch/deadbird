@@ -124,7 +124,7 @@ function benchmark(speed, timeout, cb) {
   let total = 0, fails = 0;
   let start = new Date().getTime();
   async.eachLimit(tweets, speed, (tweet, cb) => {
-    utils.tweetExistsB(tweet.handle, tweet.tweetid, timeout, exists => {
+    utils.tweetExists(tweet.handle, tweet.tweetid, timeout, exists => {
       if (exists === "fail") {
         exists = true;
         fails++;

@@ -9,9 +9,11 @@
     "retrieversEnabled": true,
     "fetcherRestInterval": 0,
     "checkerRestInterval": 900,
+    "checkerDaysBack": 7,
     "templateRestInterval": 86400,
     "acceptingNewUsers": true,
-    "maxUsers": 500
+    "maxUsers": 500,
+    "limitedRam": false
   },
   "db": {
     "host": "localhost",

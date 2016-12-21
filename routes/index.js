@@ -4,8 +4,10 @@ const express  = require('express');
 const cheerio  = require('cheerio');
 const router   = express.Router();
 const request  = require('request');
+const schedule = require('node-schedule');
 const utils    = require('../utils');
 const settings = utils.settings;
+const _        = require('lodash');
 
 const Tweet  = require('../models/tweet');
 const Handle = require('../models/handle');
@@ -27,9 +29,9 @@ async.parallel([
 function main() {
 
   router.all('*', (req, res, next) => {
-    originalUrl = req.app.get('originalUrl');
-    messages    = req.app.get('messages');
-    dates       = req.app.get('dates');
+    originalUrl = utils.get('originalUrl');
+    messages    = utils.get('messages');
+    dates       = utils.get('dates');
     if (req.url.slice(0, 5) === '/user') {
       Handle.getAll().then(data => {
         if (!utils.acceptingNewUsers() || data.length >= utils.maxNewUsers()) {
@@ -48,26 +50,9 @@ function main() {
   router.get('/', function(req, res, next) {
     let page = Number((req.query.page || 1));
     if (page < 1) page = 1;
+    if (utils.get('cache').index[page] === undefined) return res.redirect('/');
 
-    let tweets, totalTweets;
-    async.parallel([
-      cb => Tweet.getAllDeleted((page*25)-25).then(data => {
-        tweets = data.tweets;
-        totalTweets = data.total;
-        cb();
-      })
-    ], () => {
-      let tweetData = [];
-
-      async.eachLimit(tweets, 1, (tweet, cb) => {
-        Tweet.getTweetTxt(tweet.tweetid).then(data => {
-          tweetData.push(data);
-          cb();
-        });
-      }, () => {
-        res.render('stream', {title: "Home", messages, autocomplete, socket, basehref: settings.general.basehref, tweets: tweetData, originalUrl, totalTweets});
-      });
-    });
+    res.render('stream', _.merge(utils.get('cache').index[page], {title: "Home", messages, autocomplete, socket, basehref: settings.general.basehref, originalUrl}));
   });
 
   router.get('/leaderboards', (req, res, next) => {
@@ -78,7 +63,7 @@ function main() {
 
   router.get('/stats', (req, res, next) => {
     Handle.getAll('deleted').then(handles => {
-      res.render('stats', {title: "Stats", messages, handle: undefined, stats: JSON.stringify(req.app.get('stats')['all']), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
+      res.render('stats', {title: "Stats", messages, handle: undefined, stats: JSON.stringify(utils.get('stats')['all']), statUpdate: utils.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, handles});
     });
   });
 
@@ -105,7 +90,7 @@ function main() {
           cb();
         });
       }, () => {
-        res.render('statsStream', {title: `Stats on ${date}`, messages, date, handle: undefined, stats: JSON.stringify(req.app.get('stats')['all']), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, tweets: tweetData, totalTweets});
+        res.render('statsStream', {title: `Stats on ${date}`, messages, date, handle: undefined, stats: JSON.stringify(utils.get('stats')['all']), statUpdate: utils.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, tweets: tweetData, totalTweets});
       });
     });
   });
@@ -147,7 +132,7 @@ function main() {
           cb();
         });
       }, () => {
-        res.render('statsStream', {title: `Stats for ${handleIn} on ${date}`, messages, date, handle: handleIn, stats: JSON.stringify(req.app.get('stats')[handle.id]), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, tweets: tweetData, totalTweets});
+        res.render('statsStream', {title: `Stats for ${handleIn} on ${date}`, messages, date, handle: handleIn, stats: JSON.stringify(utils.get('stats')[handle.id]), statUpdate: utils.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl, tweets: tweetData, totalTweets});
       });
     });
   });
@@ -214,7 +199,7 @@ function main() {
         return res.redirect('/stats');
       }
 
-      res.render('userStats', {title: `User Stats for ${handle.handle}`, handle: handle.handle, messages, stats: JSON.stringify(req.app.get('stats')[handle.id]), statUpdate: req.app.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
+      res.render('userStats', {title: `User Stats for ${handle.handle}`, handle: handle.handle, messages, stats: JSON.stringify(utils.get('stats')[handle.id]), statUpdate: utils.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl});
     });
   });
 
@@ -265,11 +250,7 @@ function updateAutoComplete(cb) {
 }
 
 function ipBlacklist(ip, mode='lookup') {
-  if (mode === 'lookup') {
-    return ips[ip] === undefined;
-  } else {
-    ips[ip] = true;
-  }
+  return mode === 'lookup' ? ips[ip] === undefined : ips[ip] = true;
 }
 
 module.exports = router;

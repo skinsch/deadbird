@@ -1,10 +1,15 @@
-const fs       = require('fs');
-const cheerio  = require('cheerio');
-const Promise  = require('bluebird');
-const moment   = require('moment');
-const _        = require('lodash');
-const request  = require('request');
-const settings = require('./settings.json');
+const fs           = require('fs');
+const util         = require('util');
+const cheerio      = require('cheerio');
+const Promise      = require('bluebird');
+const moment       = require('moment');
+const _            = require('lodash');
+const request      = require('request');
+const EventEmitter = require('events').EventEmitter;
+const settings     = require('./settings.json');
+
+let store = {};
+let ee    = new EventEmitter();
 
 module.exports = {
   pad(n, width, z) {
@@ -32,39 +37,14 @@ module.exports = {
     }
   },
   settings,
-  tweetExists(handle, id, cb) {
-    try {
-      request.head(`https://twitter.com/${handle}/status/${id}`, {
-        timeout: settings.general.timeout,
-        gzip: true
-      }, (err, response) => {
-        // If error or lack of response reaching page, push back into queue
-        if (err || !response) {
-          cb("fail");
-        } else {
-
-          // 200 = good
-          if (response.statusCode === 200) {
-            cb(true);
-
-          // 404 = bad
-          } else if (response.statusCode === 404) {
-            cb(false);
-
-          // anything else = Twitter possibly down so pushback into queue
-          } else {
-            cb("fail");
-          }
-        }
-      });
-    } catch (e) {
-      cb(true);
+  tweetExists(handle, id, timeout, cb) {
+    if (typeof timeout === "function") {
+      cb = timeout;
+      timeout = settings.general.timeout;
     }
-  },
-  tweetExistsB(handle, id, timeout, cb) {
     try {
       request.head(`https://twitter.com/${handle}/status/${id}`, {
-        timeout: Number(timeout),
+        timeout,
         gzip: true
       }, (err, response) => {
         // If error or lack of response reaching page, push back into queue
@@ -116,5 +96,20 @@ module.exports = {
   maxNewUsers() {
     let settings = JSON.parse(fs.readFileSync('./settings.json', 'utf8'));
     return settings.general.maxUsers;
+  },
+  set(key, value) {
+    store[key] = value;
+  },
+  get(key) {
+    return store[key];
+  },
+  on(eventName, cb) {
+    ee.on(eventName, cb);
+  },
+  once(eventName, cb) {
+    ee.once(eventName, cb);
+  },
+  emit(eventName, data) {
+    ee.emit(eventName, data);
   }
 };
