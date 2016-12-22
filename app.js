@@ -1,7 +1,6 @@
 const flash        = require('connect-flash');
 const express      = require('express');
 const path         = require('path');
-const Promise      = require('bluebird');
 const favicon      = require('serve-favicon');
 const logger       = require('morgan');
 const cookieParser = require('cookie-parser');
@@ -9,15 +8,9 @@ const bodyParser   = require('body-parser');
 const compress     = require('compression');
 const debug        = require('debug')('Deadbird:server');
 const http         = require('http');
-const async        = require('async');
 const schedule     = require('node-schedule');
 const session      = require('express-session');
 
-const db     = require('./models/db');
-const Handle = require('./models/handle');
-const Tweet  = require('./models/tweet');
-
-const helpers  = require('./helpers');
 const utils    = require('./utils')
 const settings = utils.settings;
 

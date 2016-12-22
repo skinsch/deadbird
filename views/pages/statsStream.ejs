@@ -28,7 +28,7 @@ let paginationControl = `<a href="statsStream/${handleUrl}${fmtDate}/?page=1">&l
   <date hidden><%-date%></date>
   <% include ../snippets/navbar %>
   <div id="deadbirdMain">
-    <h1>Stats<%= handle ? ` for ${handle} ` : " "%>on <%=date%></h1><br>
+    <h1>Stats<%- handle ? ` for <a href='/${handle}'>${handle}</a> ` : " "%>on <%=date%></h1><br>
     <div id="deadbirdPagination">
       <div id="deadbirdPaginationStat">
         <%-paginationControl%>

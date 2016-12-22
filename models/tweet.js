@@ -19,7 +19,7 @@ const Handle = require('./handle');
 module.exports = {
   add(data, user=null) {
     return new Promise((resolve, reject) => {
-      let self = this;
+
       let timelineTweetHTML = data.timelineTweet;
       delete data.timelineTweet;
 

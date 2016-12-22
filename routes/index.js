@@ -52,7 +52,7 @@ function main() {
     if (page < 1) page = 1;
     if (utils.get('cache').index[page] === undefined) return res.redirect('/');
 
-    res.render('stream', _.merge(utils.get('cache').index[page], {title: "Home", messages, autocomplete, socket, basehref: settings.general.basehref, originalUrl}));
+    res.render('stream', _.merge(utils.get('cache').index[page], {title: "Home", messages, statUpdate: utils.get('statUpdate'), autocomplete, socket, basehref: settings.general.basehref, originalUrl}));
   });
 
   router.get('/leaderboards', (req, res, next) => {

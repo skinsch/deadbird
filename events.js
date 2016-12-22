@@ -1,6 +1,4 @@
-const async   = require('async');
-const moment  = require('moment');
-const utils   = require('./utils')
+const utils   = require('./utils');
 const helpers = require('./helpers');
 
 // Recache index pages whenever checker finishes

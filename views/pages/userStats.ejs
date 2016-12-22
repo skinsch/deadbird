@@ -26,7 +26,7 @@
   <handle hidden><%=handle%></handle>
   <% include ../snippets/navbar %>
   <div id="deadbirdMain">
-    <h1>Stats for <%=handle%></h1><br>
+    <h1>Stats for <a href="/<%=handle%>"><%=handle%></a></h1><br>
     <p><%=total.deleted%> of <%=total.total%> (<%=Math.floor((total.deleted/total.total)*10000)/100 || 0%>%) tweets have been deleted</p><br>
     <p class='info center'>Click on a column to view the tweets that were deleted for that day.</p><br>
     <div id="container" style="min-width: 310px; height: 400px; margin: 0px auto 25px"></div>

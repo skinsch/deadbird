@@ -112,4 +112,6 @@ function updateDates() {
       $(date).parent().attr('title', `Created: ${moment($(date).data('time') * 1000).format()}\n\nDeleted: ~${moment(new Date($($(date).closest('li')).data('deletetime'))).format()}`);
     }
   });
+
+  $('#streamUpdate').html(moment.duration(new Date().getTime() - Number($('statUpdate').html())).minutes());
 };
