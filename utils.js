@@ -1,5 +1,4 @@
 const fs           = require('fs');
-const util         = require('util');
 const cheerio      = require('cheerio');
 const Promise      = require('bluebird');
 const moment       = require('moment');
@@ -96,6 +95,12 @@ module.exports = {
   maxNewUsers() {
     let settings = JSON.parse(fs.readFileSync('./settings.json', 'utf8'));
     return settings.general.maxUsers;
+  },
+  getIP(req) {
+    return req.headers['cf-connecting-ip'] ||
+           req.headers['x-real-ip'] ||
+           req.headers['x-forwarded-for'] ||
+           req.connection.remoteAddress;
   },
   set(key, value) {
     store[key] = value;

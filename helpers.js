@@ -178,6 +178,13 @@ let helpers = {
       utils.emit('initStatsDone');
     });
   },
+  updateAutoComplete(cb) {
+    Handle.getAll().then(data => {
+      console.log('Autocomplete is up to date');
+      utils.set('autocomplete', JSON.stringify(data.map(item => item.handle.toLowerCase())));
+      cb();
+    });
+  }
 };
 
 // Spawners //
