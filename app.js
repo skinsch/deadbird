@@ -18,8 +18,6 @@ const io = require('socket.io')(settings.general.socket);
 require('./socket')(io);
 require('./events');
 
-const index = require('./routes/index');
-
 const app    = express();
 const server = http.createServer(app);
 
