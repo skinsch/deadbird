@@ -31,25 +31,8 @@ router.get('/:date?', (req, res, next) => {
   let page = Number((req.query.page || 1));
   if (page < 1) page = 1;
 
-  let tweets, totalTweets;
-  async.parallel([
-    cb => Tweet.getDeletedTweetsDate(null, date, page).then(data => {
-      tweets      = data.tweets;
-      totalTweets = data.total;
-      cb();
-    })
-  ], err => {
-    let tweetData = [];
-
-    async.eachLimit(tweets, 1, (tweet, cb) => {
-      Tweet.getTweetTxt(tweet.tweetid).then(data => {
-        tweetData.push(data);
-        cb();
-      });
-    }, () => {
-      res.render('statsStream', _.merge({title: `Stats on ${date}`, date, handle: undefined, stats: JSON.stringify(utils.get('stats')['all']), tweets: tweetData, totalTweets}, defaultVars));
-    });
-  });
+  if (utils.get('statsStream')[date][page] === undefined) return res.redirect('/statsStream');
+  res.render('statsStream', _.merge({title: `Stats on ${date}`, date, handle: undefined, stats: JSON.stringify(utils.get('stats')['all'])}, utils.get('statsStream')[date][page], defaultVars));
 });
 
 router.get('/:handle/:date', (req, res, next) => {

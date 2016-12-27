@@ -32,7 +32,7 @@ function main() {
   });
 
   /* GET home page. */
-  router.get('/', function(req, res, next) {
+  router.get('/', (req, res, next) => {
     let page = Number((req.query.page || 1));
     if (page < 1) page = 1;
     if (utils.get('cache').index[page] === undefined) return res.redirect('/');
@@ -50,11 +50,11 @@ function main() {
     res.render('about', _.merge({title: "About"}, defaultVars));
   });
 
-  router.get('/profileImg/:img', function(req, res, next) {
+  router.get('/profileImg/:img', (req, res, next) => {
     res.sendFile(path.resolve(__dirname + '/../data/profileImg/' + String(req.params.img)));
   });
 
-  router.get('/:handle', function(req, res, next) {
+  router.get('/:handle', (req, res, next) => {
     let handle = String(req.params.handle.replace(/@/g, ''));
     let ip     = utils.getIP(req);
 
@@ -73,7 +73,7 @@ function main() {
     });
   });
 
-  router.get('/:handle/status/:id', function(req, res, next) {
+  router.get('/:handle/status/:id', (req, res, next) => {
     let handle = String(req.params.handle.replace(/@/g, ''));
     let id     = String(req.params.id);
 

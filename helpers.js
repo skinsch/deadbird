@@ -171,6 +171,11 @@ let helpers = {
       cb => {
         utils.emit("indexCacherStart");
         utils.once("indexCacherDone", cb);
+      },
+
+      cb => {
+        utils.emit("statsStreamCacherStart");
+        utils.once("statsStreamCacherDone", cb);
       }
 
     // Prep is done, we can now start the server
@@ -182,6 +187,54 @@ let helpers = {
     Handle.getAll().then(data => {
       console.log('Autocomplete is up to date');
       utils.set('autocomplete', JSON.stringify(data.map(item => item.handle.toLowerCase())));
+      cb();
+    });
+  },
+  cacheStatsStream(cb=()=>{}) {
+    let cache = {};
+
+    async.eachLimit(utils.get('dates'), 1, (date, cb) => {
+
+      let page = 1;
+      let totalPages = +Infinity;
+      async.whilst(
+        function() { return page <= totalPages; },
+        function(innercb) {
+
+          let tweets, totalTweets;
+          async.parallel([
+            cb => Tweet.getDeletedTweetsDate(null, date, page).then(data => {
+              tweets      = data.tweets;
+              totalTweets = data.total;
+              if (totalPages === +Infinity) {
+                totalPages = Math.ceil(totalTweets/25);
+              }
+              cb();
+            })
+          ], err => {
+            let tweetData = [];
+
+            async.eachLimit(tweets, 1, (tweet, cb) => {
+              Tweet.getTweetTxt(tweet.tweetid).then(data => {
+                tweetData.push(data);
+                cb();
+              });
+            }, () => {
+              if (cache[date] === undefined) cache[date] = {};
+              cache[date][page] = {tweets: tweetData, totalTweets};
+              page++;
+              innercb();
+            });
+          });
+
+        },
+        function (err, n) {
+          cb();
+        }
+      );
+
+    }, () => {
+      utils.set('statsStream', cache);
       cb();
     });
   }
@@ -259,6 +312,7 @@ function checkerLoop() {
     else {
       data['checker'].nextCheck = new Date().getTime() + settings.general.checkerRestInterval * 1000;
       utils.emit("indexCacherStart");
+      utils.emit("statsStreamCacherStart");
       setTimeout(checkerLoop, settings.general.checkerRestInterval * 1000);
     }
   });

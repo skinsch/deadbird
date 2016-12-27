@@ -9,3 +9,11 @@ utils.on('indexCacherStart', () => {
     utils.emit('indexCacherDone');
   });
 });
+
+utils.on('statsStreamCacherStart', () => {
+  console.log("Caching statsStream...");
+  helpers.cacheStatsStream(() => {
+    console.log("Finished caching statsStream");
+    utils.emit('statsStreamCacherDone');
+  });
+});
