@@ -36,11 +36,11 @@ router.all('*', (req, res, next) => {
   });
 });
 
-router.get('/', function(req, res, next) {
+router.get('/', (req, res, next) => {
   res.render('addUser', _.merge({title: "Add new user"}, defaultVars));
 });
 
-router.post('/', function(req, res, next) {
+router.post('/', (req, res, next) => {
   let handle = String(req.body.handle).replace(/@/g, '');
   let ip     = utils.getIP(req);
 
