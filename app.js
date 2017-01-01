@@ -47,6 +47,8 @@ app.use(session({
 app.use(flash());
 
 app.use('*', (req, res, next) => {
+  if (req.originalUrl.match('pbs.twimg.com')!== null) return res.redirect(req.originalUrl.slice(1));
+
   utils.set('originalUrl', req.originalUrl);
 
   let info    = req.flash('info');
