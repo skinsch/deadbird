@@ -148,11 +148,11 @@ module.exports = {
   getDeletedTweetsDate(handle=null, date, page=null) {
     return new Promise((resolve, reject) => {
       let handleID;
-      db.query('SELECT t.*, h.id AS handleID, h.handle from `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE' + (handle ? " h.handle = '" + handle + "' AND " : " ") + 'DATE(deleteDate) = DATE(\'' + new Date().getFullYear() + '/' + date + '\') ORDER BY `deletedate` DESC' + (page !== null ? ' LIMIT ' + ((page-1)*25) + ', 25' : ''), (err, data) => {
+      db.query('SELECT t.*, h.id AS handleID, h.handle from `tweets` t INNER JOIN `handles` h ON (t.handle=h.id) WHERE' + (handle ? " h.handle = '" + handle + "' AND " : " ") + 'DATE(deleteDate) = DATE(\'' + date + '\') ORDER BY `deletedate` DESC' + (page !== null ? ' LIMIT ' + ((page-1)*25) + ', 25' : ''), (err, data) => {
 
         if (data.length > 0) handleID = data[0].handleID;
         else handleID = -1;
-        db.query('SELECT COUNT(*) from `tweets` WHERE' + (handle ? " handle = '" + handleID + "' AND " : " ") + 'DATE(deleteDate) = DATE(\'' + new Date().getFullYear() + '/' + date + '\')', (err, total) => {
+        db.query('SELECT COUNT(*) from `tweets` WHERE' + (handle ? " handle = '" + handleID + "' AND " : " ") + 'DATE(deleteDate) = DATE(\'' + date + '\')', (err, total) => {
           err ? reject(err) : resolve({tweets: data, total: total[0]['COUNT(*)']});
         });
       });

@@ -70,7 +70,7 @@ let helpers = {
       }, () => {
         utils.set('stats', stats);
         utils.set('statUpdate', new Date().getTime());
-        utils.set('dates', JSON.parse(JSON.stringify(stats['all'])).map((val, ind)=>moment(val.date.slice(0, 0-14)).format('MM/DD')).reverse());
+        utils.set('dates', JSON.parse(JSON.stringify(stats['all'])).map((val, ind)=>moment(val.date.slice(0, 0-14)).format('Y/MM/DD')).reverse());
         cb();
       });
     });

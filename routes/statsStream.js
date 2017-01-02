@@ -25,7 +25,7 @@ router.all('*', (req, res, next) => {
 });
 
 router.get('/:date?', (req, res, next) => {
-  let date   = (String(req.params.date) || "").replace(/-/, '/');
+  let date   = (String(req.params.date) || "").replace(/-/g, '/');
   if (utils.get('dates').indexOf(date) === -1) return res.redirect('/');
 
   let page = Number((req.query.page || 1));
@@ -38,7 +38,7 @@ router.get('/:date?', (req, res, next) => {
 router.get('/:handle/:date', (req, res, next) => {
   let handleIn = (String(req.params.handle) || "").replace(/@/g, '');
 
-  let date   = (String(req.params.date) || "").replace(/-/, '/');
+  let date   = (String(req.params.date) || "").replace(/-/g, '/');
   if (utils.get('dates').indexOf(date) === -1) return res.redirect('/');
 
   let page = Number((req.query.page || 1));
