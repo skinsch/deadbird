@@ -6,10 +6,10 @@ if (page < 1) page = 1;
 let totalPages = Math.ceil(totalTweets/25);
 if (totalPages === 0) totalPages = 1;
 
-let fmtDate    = date.replace(/\//, '-');
+let fmtDate    = date.replace(/\//g, '-');
 
-let handleUrl;
-if (handle !== undefined) handleUrl += "/";
+let handleUrl = "";
+if (handle !== undefined) handleUrl = handle + "/";
 else handleUrl = "";
 
 let pagination = `${totalTweets} total deleted tweets on ${date}`;
