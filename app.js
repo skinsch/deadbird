@@ -1,3 +1,4 @@
+const fs           = require('fs');
 const flash        = require('connect-flash');
 const express      = require('express');
 const path         = require('path');
@@ -66,6 +67,7 @@ app.use('*', (req, res, next) => {
   }
 
   utils.set('messages', messages);
+  utils.set('analytics', fs.readFileSync('./views/snippets/googleAnalytics.ejs', 'utf8'));
   next();
 });
 

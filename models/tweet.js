@@ -1,4 +1,5 @@
-const settings = require('../utils').settings;
+const utils    = require('../utils');
+const settings = utils.settings;
 const https = require('https');
 https.globalAgent.maxSockets = settings.general.maxSockets;
 
@@ -11,7 +12,7 @@ const request  = require('request');
 const async    = require('async');
 const zlib     = require('zlib');
 const Readable = require('stream').Readable;
-const andify   = require('../utils').andify;
+const andify   = utils.andify;
 const db       = require('./db').connection;
 
 const Handle = require('./handle');
@@ -281,10 +282,11 @@ module.exports = {
         $('.totalTweets a').attr('title', `${handleRes.total} Total Tweets`);
         $('.totalTweets .ProfileNav-value').html(handleRes.total);
 
-        $('head').append("<base href='" + settings.general.basehref + "'>")
-        $('body').append("<script src='js/jquery.js'></script>")
-        $('body').append("<script src='js/moment.min.js'></script>")
-        $('body').append("<script src='js/general.js'></script>")
+        $('head').append("<base href='" + settings.general.basehref + "'>");
+        $('body').append("<script src='js/jquery.js'></script>");
+        $('body').append("<script src='js/moment.min.js'></script>");
+        $('body').append("<script src='js/general.js'></script>");
+        $('body').append(utils.get('analytics'));
         resolve($.html());
       });
     });
@@ -348,6 +350,7 @@ module.exports = {
           $('body').append("<script src='js/jquery.js'></script>")
           $('body').append("<script src='js/moment.min.js'></script>")
           $('body').append("<script src='js/general.js'></script>")
+          $('body').append(utils.get('analytics'));
           resolve($.html());
         });
       })

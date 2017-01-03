@@ -91,9 +91,12 @@ $(() => {
         }]
       });
       let colors = ['#07bbbe', '#ae05c2'];
-      chart.series.forEach((set, index) => {
-        set.data[categories.indexOf(date)].update({color:colors[index]});
-      });
+
+      if (date !== undefined) {
+        chart.series.forEach((set, index) => {
+          set.data[categories.indexOf(date)].update({color:colors[index]});
+        });
+      }
     }
   });
 });

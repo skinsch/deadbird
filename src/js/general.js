@@ -113,5 +113,5 @@ function updateDates() {
     }
   });
 
-  $('#streamUpdate').html(moment.duration(new Date().getTime() - Number($('statUpdate').html())).minutes());
+  $('#streamUpdate').html(moment.duration(new Date().getTime() - Number($('streamUpdate').html())).minutes());
 };

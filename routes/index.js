@@ -37,7 +37,7 @@ function main() {
     if (page < 1) page = 1;
     if (utils.get('cache').index[page] === undefined) return res.redirect('/');
 
-    res.render('stream', _.merge(utils.get('cache').index[page], {title: "Home"}, defaultVars));
+    res.render('stream', _.merge(utils.get('cache').index[page], {title: "Home", streamUpdate: utils.get('streamUpdate')}, defaultVars));
   });
 
   router.get('/leaderboards', (req, res, next) => {

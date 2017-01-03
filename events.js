@@ -5,6 +5,7 @@ const helpers = require('./helpers');
 utils.on('indexCacherStart', () => {
   console.log("Caching index...");
   helpers.cacheIndex(() => {
+    utils.set('streamUpdate', new Date().getTime());
     console.log("Finished caching index");
     utils.emit('indexCacherDone');
   });
