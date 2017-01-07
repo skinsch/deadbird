@@ -27,6 +27,7 @@ $(() => {
       let statUpdate = $('statUpdate').html();
       let categories = stats.map((val, ind)=>moment(val.date.slice(0, 0-14)).format('Y/MM/DD')).reverse();
 
+      let ago = moment.duration((new Date().getTime() - Number(statUpdate))).minutes();
       let chart = Highcharts.chart('container', {
         chart: {
           type: 'column'
@@ -49,7 +50,7 @@ $(() => {
           text: 'Tweets for last 30 days'
         },
         subtitle: {
-          text: `Last updated ${moment.duration((new Date().getTime() - Number(statUpdate))).minutes()} minutes ago`
+          text: `Last updated ${ago === 0 ? "just now" : ago + " minutes ago"}`
         },
         xAxis: {
           type: 'datetime',

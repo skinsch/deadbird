@@ -107,11 +107,16 @@ function updateDates() {
 
   $('.js-short-timestamp').each((index, date) => {
     if ($($(date).closest('li')).data('deletetime') !== undefined) {
-      let info = `Created:&nbsp;${moment(new Date($(date).data('time') * 1000)).fromNow()}&nbsp;|&nbsp;Deleted:&nbsp;~${moment(new Date($($(date).closest('li')).data('deletetime'))).fromNow()}`;
+      let info = `Tweeted:&nbsp;${moment(new Date($(date).data('time') * 1000)).fromNow()}&nbsp;|&nbsp;Deleted:&nbsp;~${moment(new Date($($(date).closest('li')).data('deletetime'))).fromNow()}`;
       $(date).html(info);
-      $(date).parent().attr('title', `Created: ${moment($(date).data('time') * 1000).format()}\n\nDeleted: ~${moment(new Date($($(date).closest('li')).data('deletetime'))).format()}`);
+      $(date).parent().attr('title', `Tweeted: ${moment($(date).data('time') * 1000).format()}\n\nDeleted: ~${moment(new Date($($(date).closest('li')).data('deletetime'))).format()}`);
+    } else if ($($(date).data('time')) !== undefined) {
+      let info = `Tweeted:&nbsp;${moment(new Date($(date).data('time') * 1000)).fromNow()}`;
+      $(date).html(info);
+      $(date).parent().attr('title', `Tweeted: ${moment($(date).data('time') * 1000).format()}`);
     }
   });
 
-  $('#streamUpdate').html(moment.duration(new Date().getTime() - Number($('streamUpdate').html())).minutes());
+  let lastUpdated = moment.duration(new Date().getTime() - Number($('streamUpdate').html())).minutes();
+  $('#streamUpdate').html(`Last updated ${lastUpdated === 0 ? "just now" : lastUpdated + " minutes ago"}`);
 };

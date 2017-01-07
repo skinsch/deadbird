@@ -21,12 +21,18 @@ const Tweet  = require('./models/tweet');
 let handles;
 let tweetids = [];
 
-async.parallel([
+async.series([
+  cb => {
+    db.connection.query('DELETE FROM tweets WHERE tweetSaved = 0', (err, results) => {
+      console.log(`Purged ${results.affectedRows} invalid tweets`);
+      cb();
+    });
+  },
   cb => {
     db.connection.query('SELECT tweetid from tweets', (err, results) => {
       results.forEach(tweet => tweetids[tweet.tweetid] = true);
       cb();
-    })
+    });
   },
   cb => Handle.getAll().then(data => {
     handles = data;
@@ -114,7 +120,7 @@ function tweetExists(handle, id, cb) {
 
 function getTweets(user, cb) {
   let $;
-  request({url: "https://twitter.com/" + user.handle, timeout: settings.general.timeout * 3, gzip: true}, (err, response, body) => {
+  request({url: "https://twitter.com/" + user.handle + "/with_replies", timeout: settings.general.timeout * 3, gzip: true}, (err, response, body) => {
     if (body === undefined || err) return cb([]);
     $ = cheerio.load(body);
 

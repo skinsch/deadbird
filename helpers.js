@@ -13,7 +13,9 @@ let helpers = {
   // Cache the index stream pages
   cacheIndex(cb=()=>{}) {
     let cache = {
-      index: {}
+      index: {
+        '1': {tweets: [], totalTweets: 0}
+      }
     };
 
     Tweet.getAllDeleted(null).then(data => {
@@ -169,13 +171,21 @@ let helpers = {
       },
 
       cb => {
+        console.log("Caching index...");
         utils.emit("indexCacherStart");
-        utils.once("indexCacherDone", cb);
+        utils.once("indexCacherDone", () => {
+          console.log("Finished caching index");
+          cb();
+        });
       },
 
       cb => {
+        console.log("Caching statsStream...");
         utils.emit("statsStreamCacherStart");
-        utils.once("statsStreamCacherDone", cb);
+        utils.once("statsStreamCacherDone", () => {
+          console.log("Finished caching statsStream");
+          cb();
+        });
       }
 
     // Prep is done, we can now start the server
