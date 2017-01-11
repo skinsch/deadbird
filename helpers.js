@@ -253,7 +253,7 @@ let helpers = {
 // Spawners //
 function spawner(mode) {
   let data = utils.get('data');
-  let scripts = {fetcher: 'fetch', checker: 'check', template: 'getTemplate'};
+  let scripts = {fetcher: 'fetch', refetch: 'refetcher', checker: 'check', template: 'getTemplate'};
 
   return new Promise((resolve, reject) => {
     data[mode] = {};
@@ -288,6 +288,15 @@ function spawner(mode) {
           data[mode].text = spawnedData.text;
         }
       } else if (mode === 'fetcher') {
+        if (spawnedData.done === undefined) {
+          data[mode].status = spawnedData.status;
+          data[mode].user   = spawnedData.user;
+          data[mode].text   = spawnedData.text;
+        } else {
+          data[mode] = {};
+          data[mode].text = spawnedData.text;
+        }
+      } else if (mode === 'refetcher') {
         if (spawnedData.done === undefined) {
           data[mode].status = spawnedData.status;
           data[mode].user   = spawnedData.user;

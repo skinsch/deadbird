@@ -24,24 +24,86 @@ module.exports = {
       let timelineTweetHTML = data.timelineTweet;
       delete data.timelineTweet;
 
+      // If date of tweet is less than a day old, perform refetches else skip them
+      if (new Date().getTime() - new Date(data.date*1000).getTime() > 3600000) {
+        data.checkDate = moment(new Date().getTime() + 621920000000).format("YYYY-MM-DD HH:mm:ss");
+      } else {
+        // next check in 1 minute initially
+        data.checkDate = moment(new Date().getTime() + 60000).format("YYYY-MM-DD HH:mm:ss");
+      }
+
       data.date = moment(new Date(data.date*1000).getTime()).format("YYYY-MM-DD HH:mm:ss");
 
-      async.parallel([
+      let insertedId;
+      async.series([
         // Save html for tweet
         cb => {
           db.query('INSERT IGNORE INTO `tweets` SET ?', data, (err, result) => {
             if (result.affectedRows === 0) {
+              resolve(false);
               cb("bad");
-              return resolve({id: 0});
             } else {
-              err ? cb(err) : cb(null, {id: result.insertId});
+              insertedId = result.insertId;
+              err ? cb(err) : cb(null, {id: insertedId});
             }
           });
         },
 
         cb => {
           request({url: `https://twitter.com/${user.handle}/status/${data.tweetid}`, timeout: settings.general.timeout * 3, gzip: true}, (err, response, body) => {
-             if (err || body === undefined) return resolve({id: 0});
+            // Incase tweet actually gets deleted after we detect and before we download it to prevent infinite loop
+            if (response && response.statusCode === 404) {
+              resolve('gone');
+              cb('bad');
+            } else if (err || body === undefined) {
+              db.query('DELETE FROM tweets WHERE `id` = ' + insertedId, (err, result) => {
+                resolve(false);
+                cb('bad');
+              });
+            } else {
+              $ = cheerio.load(body, {
+                normalizeWhitespace: true
+              });
+
+              let mainTweet = new Readable;
+              mainTweet.push($('.PermalinkOverlay-modal').html());
+              mainTweet.push(null);
+
+              mainTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/tweets/${data.tweetid}.gz`));
+
+              let timelineTweet = new Readable;
+              timelineTweet.push(timelineTweetHTML);
+              timelineTweet.push(null);
+
+              timelineTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/timelineTweets/${data.tweetid}.gz`));
+              cb();
+            }
+          });
+        }
+      ], (err, results) => {
+        if (!err) {
+          let obj = results.filter(a => a !== undefined)[0];
+          this.update({tweetSaved: 1}, obj.id).then(() => {
+            resolve(true);
+          });
+        }
+      });
+    });
+  },
+  readd(data) {
+    let nextChecks = [300, 3600, 14400, 86400, 259200, 604800, 621920000];
+
+    return new Promise((resolve, reject) => {
+      async.series([
+        // Set checking to true so checker doesn't touch record until snapshot is taken
+        cb => {
+          this.update({checking: 1}, data.id).then(() => {
+            cb();
+          });
+        },
+        cb => {
+          request({url: `https://twitter.com/${data.handlename}/status/${data.tweetid}`, timeout: settings.general.timeout * 3, gzip: true}, (err, response, body) => {
+            if (err || body === undefined) return resolve({id: 0});
             $ = cheerio.load(body, {
               normalizeWhitespace: true
             });
@@ -51,22 +113,16 @@ module.exports = {
             mainTweet.push(null);
 
             mainTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/tweets/${data.tweetid}.gz`));
-
-            let timelineTweet = new Readable;
-            timelineTweet.push(timelineTweetHTML);
-            timelineTweet.push(null);
-
-            timelineTweet.pipe(zlib.createGzip()).pipe(fs.createWriteStream(`${__dirname}/../data/timelineTweets/${data.tweetid}.gz`));
             cb();
           });
         }
-      ], (err, results) => {
-        if (!err) {
-          let obj = results.filter(a => a !== undefined)[0];
-          this.update({tweetSaved: 1}, obj.id).then(() => {
-            resolve(obj);
-          });
-        }
+      ], () => {
+        this.update({
+          checking: 0,
+          checkDate: moment(new Date().getTime() + nextChecks[data.checks]*1000).format("YYYY-MM-DD HH:mm:ss"), checks: data.checks + 1
+        }, data.id).then(() => {
+          resolve(data);
+        });
       });
     });
   },

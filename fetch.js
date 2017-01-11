@@ -18,8 +18,24 @@ const db     = require('./models/db');
 const Handle = require('./models/handle');
 const Tweet  = require('./models/tweet');
 
-let handles;
 let tweetids = [];
+let handles;
+var completed = 0;
+var totalNewTweets = 0;
+
+// Pause queue and resume once all handles are pushed
+let q = async.queue((user, cb) => fetchTweets(user, cb), 15);
+q.pause();
+q.drain = () => {
+  if (tty) {
+    charm.down(1);
+    charm.cursor(true);
+    console.log(`\n${totalNewTweets} new tweets added`);
+  } else {
+    process.stdout.write(JSON.stringify({done: true, text: `${totalNewTweets} new tweets added`}));
+  }
+  process.exit(0);
+};
 
 async.series([
   cb => {
@@ -36,92 +52,19 @@ async.series([
   },
   cb => Handle.getAll().then(data => {
     handles = data;
+    handles.forEach(handle => {
+      q.push(handle);
+    });
     cb();
   })
 ], () => {
-  main();
+  q.resume();
 });
-
-function main() {
-
-  let completed = 0;
-  let totalNewTweets = 0;
-  let lastTime = new Date().getTime();
-
-  async.eachLimit(handles, 15, (user, cb) => {
-    if (settings.general.limitedRam && completed % 15 === 0) gc();
-    let newTweets;
-
-    getTweets(user, tweets => {
-
-      newTweets = 0;
-      async.eachLimit(tweets, 10, (thing, innercb) => {
-        lastTime = new Date().getTime();
-        if (thing === null) return innercb();
-
-        Tweet.add(thing, user).then(result => {
-          if (result.id !== 0) newTweets++;
-          innercb();
-        });
-      }, () => {
-        Handle.incVal('total', newTweets, user.handle).then(() => {
-          completed++;
-          if (tty) {
-            charm.left(255);
-            charm.erase('line');
-            charm.write(`${completed} / ${handles.length} | ${user.handle} | ${newTweets} new tweets | ${totalNewTweets} new tweets total`)
-          } else {
-            process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}`, user: user.handle, text: `${newTweets} new tweets - ${totalNewTweets} new tweets total`}));
-          }
-          if (completed === handles.length && tty) {
-            if (newTweets === 0) charm.erase('line');
-            else console.log('\n');
-          }
-
-          if (newTweets !== 0) {
-            totalNewTweets += newTweets;
-            if (tty) {
-              charm.write('\n');
-            }
-          }
-          cb();
-        });
-      });
-
-    });
-  }, () => {
-    if (tty) {
-      charm.down(1);
-      charm.cursor(true);
-      console.log(`\n${totalNewTweets} new tweets added`);
-    } else {
-      process.stdout.write(JSON.stringify({done: true, text: `${totalNewTweets} new tweets added`}));
-    }
-    process.exit(0);
-  });
-
-  setInterval(() => {
-    if (new Date().getTime() - lastTime > 60000) {
-      if (tty) {
-        console.log("Fetcher appears hung...aborting");
-      } else {
-        process.stdout.write(JSON.stringify({text: "Fetcher appears hung...aborting"}));
-      }
-      process.exit(1);
-    }
-  }, 5000);
-}
-
-function tweetExists(handle, id, cb) {
-  request({url: `https://twitter.com/${handle}/status/${id}`, timeout: settings.general.timeout, gzip: true}, (err, response, body) => {
-    cb(response.statusCode === 200);
-  });
-}
 
 function getTweets(user, cb) {
   let $;
   request({url: "https://twitter.com/" + user.handle + "/with_replies", timeout: settings.general.timeout * 3, gzip: true}, (err, response, body) => {
-    if (body === undefined || err) return cb([]);
+    if (body === undefined || err) return cb("fail");
     $ = cheerio.load(body);
 
     // Update urls to be relative
@@ -135,7 +78,7 @@ function getTweets(user, cb) {
     let rawTweets = Array.prototype.slice.call($('.stream-items li p.tweet-text'));
     let tweets = [];
     rawTweets.forEach((rawTweet, index) => tweets.push(tweetParser(rawTweet, {user, index})));
-    cb(tweets);
+    cb(tweets.filter(t => t !== null));
   });
 
   function tweetParser(tweet, info=null) {
@@ -165,4 +108,64 @@ function getTweets(user, cb) {
 
     return data;
   }
+}
+
+function fetchTweets(user, cb) {
+  if (settings.general.limitedRam && completed % 15 === 0) gc();
+
+  let newTweets = 0;
+  let tq = async.queue((tweet, innercb) => {
+    if (tweet === null) return innercb();
+
+    Tweet.add(tweet, user).then(result => {
+      if (result === true) newTweets++;
+
+      // Tweet appears to have been deleted at just the right moment...no action taken
+      else if (result === 'gone') {
+
+      } else {
+        // Failed fetching tweet so push back into queue to try again
+        tq.push(tweet);
+      }
+      innercb();
+    });
+  }, 10);
+
+  tq.pause();
+  tq.drain = () => {
+    Handle.incVal('total', newTweets, user.handle).then(() => {
+      completed++;
+      totalNewTweets += newTweets;
+      if (tty) {
+        charm.left(255);
+        charm.erase('line');
+        charm.write(`${completed} / ${handles.length} | ${user.handle} | ${newTweets} new tweets | ${totalNewTweets} new tweets total`)
+      } else {
+        process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}`, user: user.handle, text: `${newTweets} new tweets - ${totalNewTweets} new tweets total`}));
+      }
+      if (completed === handles.length && tty) {
+        if (newTweets === 0) charm.erase('line');
+        else console.log('\n');
+      }
+
+      if (newTweets !== 0 && tty) {
+        charm.write('\n');
+      }
+      cb();
+    });
+  };
+
+  getTweets(user, tweets => {
+    if (tweets === "fail") {
+      handles.push(user);
+      q.push(user);
+      return tq.drain();
+    }
+
+    tweets.forEach(tweet => {
+      tq.push(tweet);
+    });
+    if (tq.length() === 0) tq.drain();
+    else tq.resume();
+  });
 }

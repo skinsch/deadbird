@@ -16,18 +16,12 @@ if (tty) {
 }
 
 let handles;
-db.init(() => {
-  Handle.getAll().then(data => {
-    handles = data;
-    main();
-  });
-});
+var total = 0;
 
-function main() {
-  let total = 0;
-  async.eachLimit(handles, 15, (handle, cb) => {
-
-    Handle.fetchTemplate(handle.handle, () => {
+let q = async.queue((handle, cb) => {
+  Handle.fetchTemplate(handle.handle, status => {
+    // gone = Maybe twitter handle changed...need to handle this in the future
+    if (status === true || status === 'gone') {
       ++total;
       if (tty) {
         charm.left(255);
@@ -36,16 +30,35 @@ function main() {
       } else {
         process.stdout.write(JSON.stringify({status: `${total} / ${handles.length}`, text: `Fetched template for ${handle.handle}`}));
       }
-      cb();
-    });
-  }, () => {
-    if (tty) {
-      charm.down(1);
-      charm.cursor(true);
-      console.log(`\nFinished fetching templates`);
+
+    // Failed to fetch, so push back into queue
     } else {
-      process.stdout.write(JSON.stringify({done: true, text: `Finished fetching templates`}));
+      ++total;
+      handles.push(handle);
+      q.push(handle);
     }
-    process.exit();
+    cb();
   });
-}
+}, 15);
+q.pause();
+q.drain = function() {
+  if (tty) {
+    charm.down(1);
+    charm.cursor(true);
+    console.log(`\nFinished fetching templates`);
+  } else {
+    process.stdout.write(JSON.stringify({done: true, text: `Finished fetching templates`}));
+  }
+  process.exit();
+};
+
+db.init(() => {
+  Handle.getAll().then(data => {
+    handles = data;
+    handles.forEach(handle => {
+      q.push(handle);
+    });
+
+    q.resume();
+  });
+});

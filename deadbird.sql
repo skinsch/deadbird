@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Nov 23, 2016 at 02:18 AM
+-- Generation Time: Jan 11, 2017 at 12:34 AM
 -- Server version: 5.7.15
--- PHP Version: 5.6.25
+-- PHP Version: 5.6.27
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -127,7 +127,7 @@ INSERT INTO `handles` (`id`, `handle`, `total`, `deleted`, `template`, `ext`) VA
 (85, 'mohamadalarefe', 0, 0, 0, NULL),
 (86, 'shugairi', 0, 0, 0, NULL),
 (87, 'ricky_martin', 0, 0, 0, NULL),
-(88, 'twitterespanol', 0, 0, 0, NULL),
+(88, 'twitterlatam', 0, 0, 0, NULL),
 (89, 'priyankachopra', 0, 0, 0, NULL),
 (90, 'jimcarrey', 0, 0, 0, NULL),
 (91, 'reuters', 0, 0, 0, NULL),
@@ -155,7 +155,10 @@ CREATE TABLE `tweets` (
   `fetchDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `deleteDate` timestamp NULL DEFAULT NULL,
   `content` text COLLATE utf8_unicode_ci,
-  `tweetSaved` int(11) NOT NULL DEFAULT '0'
+  `tweetSaved` int(11) NOT NULL DEFAULT '0',
+  `checks` int(11) NOT NULL DEFAULT '0',
+  `checking` tinyint(1) NOT NULL,
+  `checkDate` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --

@@ -105,6 +105,12 @@ module.exports = {
         timeout: settings.general.timeout * 5,
         gzip: true
       }, (err, response, body) => {
+        if (response && response.statusCode === 404) {
+          return cb('gone');
+        } else if (err || body === undefined) {
+          return cb(false);
+        }
+
         $ = cheerio.load(body, {
           normalizeWhitespace: true
         });
@@ -202,7 +208,7 @@ module.exports = {
           }).pipe(fs.createWriteStream(`./data/profileImg/${handle.id}${ext}`));
           this.update({template: 1, ext}, handle.id).then(() => {
             dl.on('finish', () => {
-              cb();
+              cb(true);
             });
           });
         });
