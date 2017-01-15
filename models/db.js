@@ -15,10 +15,15 @@ var pool = mysql.createPool({
 });
 
 module.exports.init = function(cb) {
+  let timeout = setTimeout(() => {
+    console.log("Unable to connect to MySQL database. Make sure that you have supplied a valid user/pass/database in settings.json");
+    process.exit();
+  }, 5000);
   if (initDone) cb();
 
   pool.on('connection', connection => {
     if (!initDone) {
+      clearTimeout(timeout);
       initDone = true;
       cb();
     }
