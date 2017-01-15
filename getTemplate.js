@@ -17,6 +17,7 @@ if (tty) {
 
 let handles;
 var total = 0;
+var fails = 0;
 
 let q = async.queue((handle, cb) => {
   Handle.fetchTemplate(handle.handle, status => {
@@ -26,15 +27,15 @@ let q = async.queue((handle, cb) => {
       if (tty) {
         charm.left(255);
         charm.erase('line');
-        charm.write(`${total} / ${handles.length} | Fetched template for ${handle.handle}`)
+        charm.write(`${total} / ${handles.length}+${fails} | ${Math.floor(total/(handles.length+fails)*100)} | ${handles.length+fails-total} | Fetched template for ${handle.handle}`)
       } else {
-        process.stdout.write(JSON.stringify({status: `${total} / ${handles.length}`, text: `Fetched template for ${handle.handle}`}));
+        process.stdout.write(JSON.stringify({status: `${total} / ${handles.length}+${fails}`, percent: Math.floor(total/(handles.length+fails)*100), remaining: handles.length+fails-total, text: `Fetched template for ${handle.handle}`}));
       }
 
     // Failed to fetch, so push back into queue
     } else {
-      ++total;
-      handles.push(handle);
+      total++;
+      fails++;
       q.push(handle);
     }
     cb();

@@ -21,6 +21,7 @@ const Tweet  = require('./models/tweet');
 let tweetids = [];
 let handles;
 var completed = 0;
+var fails = 0;
 var totalNewTweets = 0;
 
 // Pause queue and resume once all handles are pushed
@@ -139,9 +140,9 @@ function fetchTweets(user, cb) {
       if (tty) {
         charm.left(255);
         charm.erase('line');
-        charm.write(`${completed} / ${handles.length} | ${user.handle} | ${newTweets} new tweets | ${totalNewTweets} new tweets total`)
+        charm.write(`${completed} / ${handles.length}+${fails} | ${Math.floor(completed/(handles.length+fails)*100)} | ${handles.length+fails-completed} | ${user.handle} | ${newTweets} new tweets | ${totalNewTweets} new tweets total`)
       } else {
-        process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}`, user: user.handle, text: `${newTweets} new tweets - ${totalNewTweets} new tweets total`}));
+        process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}+${fails}`, percent: Math.floor(completed/(handles.length+fails)*100), remaining: handles.length+fails-completed, user: user.handle, text: `${newTweets} new tweets - ${totalNewTweets} new tweets total`}));
       }
       if (completed === handles.length && tty) {
         if (newTweets === 0) charm.erase('line');
@@ -157,7 +158,7 @@ function fetchTweets(user, cb) {
 
   getTweets(user, tweets => {
     if (tweets === "fail") {
-      handles.push(user);
+      fails++;
       q.push(user);
       return tq.drain();
     }
