@@ -1,3 +1,4 @@
+require('colors');
 const async    = require('async');
 const moment   = require('moment');
 const utils    = require('./utils')
@@ -8,6 +9,15 @@ const settings = utils.settings;
 const db     = require('./models/db');
 const Tweet  = require('./models/tweet');
 const Handle = require('./models/handle');
+
+let tty = process.stdout.isTTY ? true : false;
+
+const charm = require('charm')();
+
+if (tty) {
+  charm.pipe(process.stdout);
+  charm.cursor(false);
+}
 
 let helpers = {
   // Cache the index stream pages
@@ -109,50 +119,70 @@ let helpers = {
   },
   initStats() {
     let data = {
-      fetcher: {},
-      checker: {},
-      template: {}
+      fetcher: {percent: 0},
+      refetcher: {percent: 0},
+      checker: {percent: 0},
+      unchecker: {percent: 0},
+      template: {percent: 0}
     };
+
+    let cacheData = {
+      stats: {status: 'pre'},
+      index: {status: 'pre'},
+      statsStream: {status: 'pre'}
+    };
+
+    let cacheStatus, cacheItem = 'stats';
+
     utils.set('data', data);
 
     async.series([
       // Start template -> checker
       cb => {
-        let interval, item = 'template';
+        let liveStatus, item = 'template';
         if (settings.general.retrieversEnabled) {
           async.series([
-
-            // Live status update...will implement charm in the future for nicer output
             cb => {
-              interval = setInterval(() => {
-                console.log(JSON.stringify(data[item]));
-              }, 1000);
+              console.log("\n\n\n\n\n");
               cb();
             },
             cb => {
-              console.log("Starting template fetcher...")
+              liveStatus = setInterval(() => {
+                liveStatusUpdate(data, item);
+              }, 100);
+              cb();
+            },
+            cb => {
               spawner('template').then(() => {
-                console.log("Template fetcher done");
                 cb()
               });
             },
             cb => {
+              item = 'fetcher';
+              spawner('fetcher').then(cb.bind(this));
+            },
+            cb => {
+              item = 'refetcher';
+              spawner('refetcher').then(cb.bind(this));
+            },
+            cb => {
+              item = 'unchecker';
+              spawner('unchecker').then(cb.bind(this));
+            },
+            cb => {
               item = 'checker';
-              console.log("Starting Checker...")
-              spawner('checker').then(() => {
-                console.log("Checker done");
-                cb()
-              });
+              spawner('checker').then(cb.bind(this));
             }
           ], () => {
-            clearInterval(interval);
+            clearInterval(liveStatus);
+            liveStatusUpdate(data, item);
+            console.log();
 
-            // Fetcher loop starts after template/checker finishes
-            // Manually start delay until official template/checker loop starts
-            fetcherLoop();
-
-            setTimeout(templateLoop, settings.general.templateRestInterval * 1000);
-            setTimeout(checkerLoop, settings.general.checkerRestInterval * 1000);
+            setTimeout(fetcherLoop,   settings.general.fetcherRestInterval * 1000);
+            setTimeout(refetcherLoop, settings.general.refetcherRestInterval * 1000);
+            setTimeout(templateLoop,  settings.general.templateRestInterval * 1000);
+            setTimeout(uncheckerLoop, settings.general.fetcherRestInterval * 1000);
+            setTimeout(checkerLoop,   settings.general.checkerRestInterval * 1000);
             cb();
           });
         } else {
@@ -162,40 +192,52 @@ let helpers = {
 
       // Cache stats for graphs
       cb => {
-        console.log("Caching initial stats...");
+        console.log("\n\n\n");
+        cacheStatus = setInterval(() => {
+          cacheStatusUpdate(cacheData, cacheItem);
+        }, 100);
+        cb();
+      },
+      cb => {
+        cacheData.stats.status = 'inProgress';
         helpers.updateStats(() => {
-          console.log("Finished caching stats");
+          cacheData.stats.status = 'done';
           schedule.scheduleJob('0 */15 * * * *', helpers.updateStats);
           cb();
         });
       },
 
       cb => {
-        console.log("Caching index...");
+        cacheItem = 'index';
+        cacheData.index.status = 'inProgress';
         utils.emit("indexCacherStart");
         utils.once("indexCacherDone", () => {
-          console.log("Finished caching index");
+          cacheData.index.status = 'done';
           cb();
         });
       },
 
       cb => {
-        console.log("Caching statsStream...");
+        cacheItem = 'statsStream';
+        cacheData.statsStream.status = 'inProgress';
         utils.emit("statsStreamCacherStart");
         utils.once("statsStreamCacherDone", () => {
-          console.log("Finished caching statsStream");
+          cacheData.statsStream.status = 'done';
           cb();
         });
       }
 
     // Prep is done, we can now start the server
     ], () => {
+      clearInterval(cacheStatus);
+      cacheStatusUpdate(cacheData, cacheItem);
+      console.log();
+
       utils.emit('initStatsDone');
     });
   },
   updateAutoComplete(cb) {
     Handle.getAll().then(data => {
-      console.log('Autocomplete is up to date');
       utils.set('autocomplete', JSON.stringify(data.map(item => item.handle.toLowerCase())));
       cb();
     });
@@ -253,10 +295,10 @@ let helpers = {
 // Spawners //
 function spawner(mode) {
   let data = utils.get('data');
-  let scripts = {fetcher: 'fetch', refetch: 'refetcher', checker: 'check', template: 'getTemplate'};
+  let scripts = {fetcher: 'fetch', refetcher: 'refetcher', unchecker: 'unchecker', checker: 'check', template: 'getTemplate'};
 
   return new Promise((resolve, reject) => {
-    data[mode] = {};
+    data[mode] = {percent: 0};
 
     let spawned;
     if (settings.general.limitedRam) {
@@ -265,61 +307,33 @@ function spawner(mode) {
       spawned = spawn('node', [scripts[mode]]);
     }
 
-    spawned.stdout.on('data', spawnedData => {
+    spawned.stdout.on('data', out => {
       // Sometimes the JSON output is garbled because of two
       // objects outputting at the same time.
       try {
-        spawnedData = JSON.parse(spawnedData);
+        out = JSON.parse(out);
       } catch(e) {
         return;
       }
 
-      if (mode === 'checker') {
-        if (spawnedData.text === undefined) {
-          // Update data
-          data[mode].status    = spawnedData.status;
-          data[mode].remaining = spawnedData.remaining;
-          data[mode].rate      = spawnedData.rate;
-          data[mode].eta       = spawnedData.eta;
-          data[mode].user      = spawnedData.user;
-          data[mode].url       = spawnedData.url;
-        } else {
-          data[mode] = {};
-          data[mode].text = spawnedData.text;
-        }
-      } else if (mode === 'fetcher') {
-        if (spawnedData.done === undefined) {
-          data[mode].status = spawnedData.status;
-          data[mode].user   = spawnedData.user;
-          data[mode].text   = spawnedData.text;
-        } else {
-          data[mode] = {};
-          data[mode].text = spawnedData.text;
-        }
-      } else if (mode === 'refetcher') {
-        if (spawnedData.done === undefined) {
-          data[mode].status = spawnedData.status;
-          data[mode].user   = spawnedData.user;
-          data[mode].text   = spawnedData.text;
-        } else {
-          data[mode] = {};
-          data[mode].text = spawnedData.text;
-        }
-      } else if (mode === 'template') {
-        if (spawnedData.done === undefined) {
-          data[mode].status = spawnedData.status;
-          data[mode].text   = spawnedData.text;
-        } else {
-          data[mode] = {};
-          data[mode].text = spawnedData.text;
-        }
-      }
+      populate(data, mode, out, [
+        'status', 'percent', 'remaining', 'rate',
+        'eta', 'user', 'url', 'text'
+      ]);
     });
 
     spawned.on('exit', err => {
+      let text = data[mode].text;
+      data[mode] = {text, percent: 100};
       if (err === null) resolve(true);
       else resolve(false);
     });
+
+    function populate(data, mode, out, items) {
+      items.forEach(item => {
+        if (item in out) data[mode][item] = out[item];
+      });
+    }
   });
 }
 
@@ -337,6 +351,18 @@ function checkerLoop() {
   });
 }
 
+function uncheckerLoop() {
+  let data = utils.get('data');
+
+  spawner('unchecker').then(fail => {
+    if (fail) uncheckerLoop();
+    else {
+      data['unchecker'].nextCheck = new Date().getTime() + settings.general.uncheckerRestInterval * 1000;
+      setTimeout(uncheckerLoop, settings.general.uncheckerRestInterval * 1000);
+    }
+  });
+}
+
 function fetcherLoop() {
   let data = utils.get('data');
 
@@ -345,6 +371,18 @@ function fetcherLoop() {
     else {
       data['fetcher'].nextCheck = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
       setTimeout(fetcherLoop, settings.general.fetcherRestInterval * 1000);
+    }
+  });
+}
+
+function refetcherLoop() {
+  let data = utils.get('data');
+
+  spawner('refetcher').then(fail => {
+    if (fail) refetcherLoop();
+    else {
+      data['refetcher'].nextCheck = new Date().getTime() + settings.general.refetcherRestInterval * 1000;
+      setTimeout(refetcherLoop, settings.general.refetcherRestInterval * 1000);
     }
   });
 }
@@ -359,6 +397,53 @@ function templateLoop() {
       setTimeout(templateLoop, settings.general.templateRestInterval * 1000);
     }
   });
+}
+
+function liveStatusUpdate(data, item) {
+  charm.up(6);
+  let strings = [
+    {val: `[1 / 5] Template Fetcher ${data.template.percent}%`,  percent: data.template.percent},
+    {val: `[2 / 5] Fetcher          ${data.fetcher.percent}%`,   percent: data.fetcher.percent},
+    {val: `[3 / 5] Refetcher        ${data.refetcher.percent}%`, percent: data.refetcher.percent},
+    {val: `[4 / 5] Unchecker        ${data.unchecker.percent}%`, percent: data.unchecker.percent},
+    {val: `[5 / 5] Checker          ${data.checker.percent}%`,   percent: data.checker.percent}
+  ];
+  console.log(`--- Deadbird initial setup ---`.bold);
+  strings.forEach(str => {
+    if (str.percent > 0 && str.percent < 100) console.log(str.val.yellow)
+    else if (str.percent === 100) console.log(str.val.green)
+    else console.log(str.val);
+  });
+}
+
+function cacheStatusUpdate(cacheData, item) {
+  let progress = {
+    stats: 0,
+    index: 0,
+    statsStream: 0
+  };
+
+  cacheStatusUpdate = (cacheData, item) => {
+    progress[item]++;
+    charm.up(4);
+    let strings = [
+      {val: `[1 / 3]  Graph stats`, item: 'stats'},
+      {val: `[2 / 3]        Index`, item: 'index'},
+      {val: `[3 / 3] Stats Stream`, item: 'statsStream'}
+    ];
+    console.log(`--- Deadbird caching setup ---`.bold);
+    strings.forEach(str => {
+      let line = str.val + ".".repeat(progress[str.item]);
+      if (cacheData[str.item].status === 'done') {
+        console.log(line.green);
+      } else if (cacheData[str.item].status === 'inProgress') {
+        console.log(line.yellow);
+      } else {
+        console.log(line);
+      }
+    });
+  }
+  cacheStatusUpdate(cacheData, item);
 }
 
 module.exports = helpers;

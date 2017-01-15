@@ -12,20 +12,25 @@
     <h1>Credits</h1><br>
     <p>Dead Bird logo by Luis Prado from the Noun Project</p><br>
     <div class="row">
-      <div class="col-xs-6 col-md-4 statlog">
+      <div class="col-xs-6 col-md-3 statlog">
         <h3 class='deadbirdStatTitle'>Fetcher</h3>
         <textarea id='fetcherLog'>Loading...</textarea>
         <p>The fetcher continuously checks for new tweets made by users.<br><br>When it finds a new tweet, it parses and extracts the relevant html and saves tweet meta data to the database.</p>
       </div>
-      <div class="col-xs-6 col-md-4 statlog">
+      <div class="col-xs-6 col-md-3 statlog">
         <h3 class='deadbirdStatTitle'>Checker</h3>
         <textarea id='checkerLog'>Loading...</textarea>
         <p>The checker checks to see if a saved tweet has been deleted or not. It does this by send a HEAD request to the generated Twitter status URL and checking the status code for 404.<br><br>If we get a 404 status code, the tweet has been deleted and it'll now show up on the main page stream as well as the individual user's page.<br><br>The crawler checks tweets created within the last 7 days every 15 minutes.</p>
       </div>
-      <div class="col-xs-6 col-md-4 statlog">
+      <div class="col-xs-6 col-md-3 statlog">
         <h3 class='deadbirdStatTitle'>Templates</h3>
         <textarea id='templateLog'>Loading...</textarea>
         <p>Templates are the user's profile pic and current Twitter page info (tweets, followers, bio, etc). These pages are updated daily.</p>
+      </div>
+      <div class="col-xs-6 col-md-3 statlog">
+        <h3 class='deadbirdStatTitle'>Refetcher</h3>
+        <textarea id='refetcherLog'>Loading...</textarea>
+        <p>Refetcher fetches a snapshot of saved tweets in 1 minute, 5 minute, 1 hour, 4 hours, 1 day, 3 days, and 1 week intervals and checks for tweets ready to be snapshotted every 5 minutes.</p>
       </div>
     </div>
   </div>

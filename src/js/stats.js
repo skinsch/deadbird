@@ -16,9 +16,13 @@ $(() => {
     if (data.template.nextCheck) {
       data.template.nextCheck = `${Math.floor((data.template.nextCheck - new Date().getTime())/1000)} seconds`;
     }
+    if (data.refetcher.nextCheck) {
+      data.refetcher.nextCheck = `${Math.floor((data.refetcher.nextCheck - new Date().getTime())/1000)} seconds`;
+    }
     $('#fetcherLog').val(JSON.stringify(data.fetcher, null, 1));
     $('#checkerLog').val(JSON.stringify(data.checker, null, 1));
     $('#templateLog').val(JSON.stringify(data.template, null, 1));
+    $('#refetcherLog').val(JSON.stringify(data.refetcher, null, 1));
   });
   setInterval(() => socket.emit('getStatus'), 1000);
   $(function () {

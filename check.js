@@ -47,22 +47,31 @@ let q = async.queue((tweet, cb) => {
       if (tty) {
         charm.left(255);
         charm.erase('line');
-        charm.write(`${total} / ${startTotal}+${fails} | ${startTotal+fails-total} | ${Math.floor(rate)} tweets/sec | eta: ${format} | ${tweet.handle} | https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`)
+        charm.write(`${total} / ${startTotal}+${fails} | ${startTotal+fails-total} | ${Math.floor(total/(startTotal+fails)*100)} | ${Math.floor(rate)} tweets/sec | eta: ${format} | ${tweet.handle} | https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`)
       } else {
-        process.stdout.write(JSON.stringify({status: `${total} / ${startTotal}+${fails}`, remaining: startTotal+fails-total, rate: Math.floor(rate), eta: format, user: tweet.handle, url: `https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`}));
+        process.stdout.write(JSON.stringify({status: `${total} / ${startTotal}+${fails}`, remaining: startTotal+fails-total, percent: Math.floor(total/(startTotal+fails)*100), rate: Math.floor(rate), eta: format, user: tweet.handle, url: `https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`}));
       }
     }
 
     if (!exists) {
-      totalDeletedTweets++;
-      Handle.incVal('deleted', 1, tweet.handle).then(() => {
-        charm.left(255);
-        charm.erase('line');
-        charm.write(`${total} / ${startTotal}+${fails} | ${startTotal+fails-total} | ${Math.floor(rate)} tweets/sec | eta: ${format} | ${tweet.handle} | https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`)
-        charm.write(`\n\t${tweet.content}\n\n`);
-        Tweet.deleted(tweet.id).then(() => {
+      Tweet.getCond({tweetid: tweet.tweetid}).then(lookup => {
+        if (lookup.checking !== 1) {
+          totalDeletedTweets++;
+          Handle.incVal('deleted', 1, tweet.handle).then(() => {
+            charm.left(255);
+            charm.erase('line');
+            charm.write(`${total} / ${startTotal}+${fails} | ${startTotal+fails-total} | ${Math.floor(rate)} tweets/sec | eta: ${format} | ${tweet.handle} | https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`)
+            charm.write(`\n\t${tweet.content}\n\n`);
+            Tweet.deleted(tweet.id).then(() => {
+              cb();
+            });
+          });
+
+        // Tweet is currently being snapshotted so push it back into the queue and try again later.
+        } else {
+          q.push(tweet);
           cb();
-        });
+        }
       });
     } else {
       cb();

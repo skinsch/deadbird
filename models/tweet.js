@@ -51,7 +51,7 @@ module.exports = {
 
         cb => {
           request({url: `https://twitter.com/${user.handle}/status/${data.tweetid}`, timeout: settings.general.timeout * 3, gzip: true}, (err, response, body) => {
-            // Incase tweet actually gets deleted after we detect and before we download it to prevent infinite loop
+            // In case tweet actually gets deleted after we detect and before we download it to prevent infinite loop
             if (response && response.statusCode === 404) {
               resolve('gone');
               cb('bad');
@@ -103,7 +103,10 @@ module.exports = {
         },
         cb => {
           request({url: `https://twitter.com/${data.handlename}/status/${data.tweetid}`, timeout: settings.general.timeout * 3, gzip: true}, (err, response, body) => {
-            if (err || body === undefined) return resolve({id: 0});
+            if (err || body === undefined) {
+              return cb('fail');
+            }
+
             $ = cheerio.load(body, {
               normalizeWhitespace: true
             });
@@ -116,13 +119,17 @@ module.exports = {
             cb();
           });
         }
-      ], () => {
-        this.update({
-          checking: 0,
-          checkDate: moment(new Date().getTime() + nextChecks[data.checks]*1000).format("YYYY-MM-DD HH:mm:ss"), checks: data.checks + 1
-        }, data.id).then(() => {
-          resolve(data);
-        });
+      ], err => {
+        if (!err) {
+          this.update({
+            checking: 0,
+            checkDate: moment(new Date().getTime() + nextChecks[data.checks]*1000).format("YYYY-MM-DD HH:mm:ss"), checks: data.checks + 1
+          }, data.id).then(() => {
+            resolve(data);
+          });
+        } else {
+          resolve('fail');
+        }
       });
     });
   },
