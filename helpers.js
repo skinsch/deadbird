@@ -433,7 +433,7 @@ function cacheStatusUpdate(cacheData, item) {
     ];
     console.log(`--- Deadbird caching setup ---`.bold);
     strings.forEach(str => {
-      let line = str.val + ".".repeat(progress[str.item]);
+      let line = str.val + ".".repeat(progress[str.item]/2);
       if (cacheData[str.item].status === 'done') {
         console.log(line.green);
       } else if (cacheData[str.item].status === 'inProgress') {
