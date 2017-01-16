@@ -103,7 +103,9 @@ module.exports = {
         },
         cb => {
           request({url: `https://twitter.com/${data.handlename}/status/${data.tweetid}`, timeout: settings.general.timeout * 3, gzip: true}, (err, response, body) => {
-            if (err || body === undefined) {
+            if (response && response.statusCode === 404) {
+              return cb('gone');
+            } else if (err || body === undefined) {
               return cb('fail');
             }
 
@@ -127,8 +129,14 @@ module.exports = {
           }, data.id).then(() => {
             resolve(data);
           });
-        } else {
+        } else if (err === 'fail') {
           resolve('fail');
+        } else {
+          this.update({
+            checking: 0
+          }, data.id).then(() => {
+            resolve('gone');
+          });
         }
       });
     });
