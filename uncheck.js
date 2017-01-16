@@ -53,8 +53,7 @@ let q = async.queue((tweet, cb) => {
       }
     }
 
-    if (exists) {
-      //console.log('tweet exists...need to undelete');
+    if (exists === true) {
       totalUndeletedTweets++;
       charm.left(255);
       charm.erase('line');
