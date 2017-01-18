@@ -30,12 +30,23 @@ if (settings.general.rate === 0 || settings.general.timeout === 0) {
 
 let total = 0, fails = 0, startTotal = 0, totalDeletedTweets = 0;
 let start = new Date().getTime();
+let net = 0;
 let rate;
 
 let q = async.queue((tweet, cb) => {
   utils.tweetExists(tweet.handle, tweet.tweetid, exists => {
     if (exists === "fail") {
       q.push(tweet);
+      net-=2;
+
+      // If experiencing a lot of fails, take a break
+      if (net < -25) {
+        net = 0;
+        q.pause();
+        setTimeout(() => {
+          q.resume()
+        }, settings.general.timeout);
+      }
       fails++;
     }
     rate = total / ((new Date().getTime() - start)/1000);
@@ -43,6 +54,7 @@ let q = async.queue((tweet, cb) => {
     let format = `${utils.pad(raw.minutes(), 2)}:${utils.pad(raw.seconds(), 2)}`;
 
     ++total;
+    net++;
     if (total % 25 === 0) {
       if (tty) {
         charm.left(255);
@@ -51,6 +63,11 @@ let q = async.queue((tweet, cb) => {
       } else {
         process.stdout.write(JSON.stringify({status: `${total} / ${startTotal}+${fails}`, remaining: startTotal+fails-total, percent: Math.floor(total/(startTotal+fails)*100), rate: Math.floor(rate), eta: format, user: tweet.handle, url: `https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`}));
       }
+    }
+
+    // Zero net if net isn't negative every 100 passes
+    if (total % 100 === 0 && net > 0) {
+      net = 0;
     }
 
     if (!exists) {
