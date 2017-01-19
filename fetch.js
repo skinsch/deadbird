@@ -23,6 +23,8 @@ let handles;
 var completed = 0;
 var fails = 0;
 var totalNewTweets = 0;
+var lastSuccess = new Date().getTime();
+var breaks = 0;
 
 // Pause queue and resume once all handles are pushed
 let q = async.queue((user, cb) => fetchTweets(user, cb), 15);
@@ -119,10 +121,12 @@ function fetchTweets(user, cb) {
     if (tweet === null) return innercb();
 
     Tweet.add(tweet, user).then(result => {
-      if (result === true) newTweets++;
+      if (result === true) {
+        newTweets++;
+        lastSuccess = new Date().getTime();
 
       // Tweet appears to have been deleted at just the right moment...no action taken
-      else if (result === 'gone') {
+      } else if (result === 'gone') {
 
       } else {
         // Failed fetching tweet so push back into queue to try again
@@ -140,9 +144,9 @@ function fetchTweets(user, cb) {
       if (tty) {
         charm.left(255);
         charm.erase('line');
-        charm.write(`${completed} / ${handles.length}+${fails} | ${Math.floor(completed/(handles.length+fails)*100)} | ${handles.length+fails-completed} | ${user.handle} | ${newTweets} new tweets | ${totalNewTweets} new tweets total`)
+        charm.write(`${completed} / ${handles.length}+${fails} | ${Math.floor((completed-fails)/(handles.length+fails)*100)} | ${handles.length+fails-completed} | ${user.handle} | ${newTweets} new tweets | ${totalNewTweets} new tweets total`)
       } else {
-        process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}+${fails}`, percent: Math.floor(completed/(handles.length+fails)*100), remaining: handles.length+fails-completed, user: user.handle, text: `${newTweets} new tweets - ${totalNewTweets} new tweets total`}));
+        process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}+${fails}`, percent: Math.floor((completed-fails)/(handles.length+fails)*100), remaining: handles.length+fails-completed, user: user.handle, text: `${newTweets} new tweets - ${totalNewTweets} new tweets total`}));
       }
       if (completed === handles.length && tty) {
         if (newTweets === 0) charm.erase('line');
@@ -170,3 +174,23 @@ function fetchTweets(user, cb) {
     else tq.resume();
   });
 }
+
+setInterval(() => {
+  // If more than 10 seconds have passed since last success
+  if (new Date().getTime() - lastSuccess > 10000) {
+
+    // More than 3 breaks
+    if (++breaks === 3) {
+      console.log("Script quitting...too many failures kept occuring. You might want to adjust some values in your settings");
+      process.exit();
+
+    // Take a 5 second break
+    } else {
+      lastSuccess = new Date().getTime() + 5000;
+      q.pause();
+      setTimeout(() => {
+        q.resume();
+      }, 5000);
+    }
+  }
+}, 1000)
