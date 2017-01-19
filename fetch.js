@@ -144,9 +144,9 @@ function fetchTweets(user, cb) {
       if (tty) {
         charm.left(255);
         charm.erase('line');
-        charm.write(`${completed} / ${handles.length}+${fails} | ${Math.floor((completed-fails)/(handles.length+fails)*100)} | ${handles.length+fails-completed} | ${user.handle} | ${newTweets} new tweets | ${totalNewTweets} new tweets total`)
+        charm.write(`${completed} / ${handles.length}+${fails} | ${Math.floor((completed/handles.length)*100)} | ${handles.length+fails-completed} | ${user.handle} | ${newTweets} new tweets | ${totalNewTweets} new tweets total`)
       } else {
-        process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}+${fails}`, percent: Math.floor((completed-fails)/(handles.length+fails)*100), remaining: handles.length+fails-completed, user: user.handle, text: `${newTweets} new tweets - ${totalNewTweets} new tweets total`}));
+        process.stdout.write(JSON.stringify({status: `${completed} / ${handles.length}+${fails}`, percent: Math.floor((completed/handles.length)*100), remaining: handles.length+fails-completed, user: user.handle, text: `${newTweets} new tweets - ${totalNewTweets} new tweets total`}));
       }
       if (completed === handles.length && tty) {
         if (newTweets === 0) charm.erase('line');

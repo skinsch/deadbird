@@ -52,9 +52,9 @@ let q = async.queue((tweet, cb) => {
       if (tty) {
         charm.left(255);
         charm.erase('line');
-        charm.write(`${total} / ${startTotal}+${fails} | ${startTotal+fails-total} | ${Math.floor((total-fails)/(startTotal+fails)*100)} | ${Math.floor(rate)} tweets/sec | eta: ${format} | ${tweet.handle} | https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`)
+        charm.write(`${total} / ${startTotal}+${fails} | ${startTotal+fails-total} | ${Math.floor((total/startTotal)*100)} | ${Math.floor(rate)} tweets/sec | eta: ${format} | ${tweet.handle} | https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`)
       } else {
-        process.stdout.write(JSON.stringify({status: `${total} / ${startTotal}+${fails}`, remaining: startTotal+fails-total, percent: Math.floor((total-fails)/(startTotal+fails)*100), rate: Math.floor(rate), eta: format, user: tweet.handle, url: `https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`}));
+        process.stdout.write(JSON.stringify({status: `${total} / ${startTotal}+${fails}`, remaining: startTotal+fails-total, percent: Math.floor((total/startTotal)*100), rate: Math.floor(rate), eta: format, user: tweet.handle, url: `https://twitter.com/${tweet.handle}/status/${tweet.tweetid}`}));
       }
     }
 
