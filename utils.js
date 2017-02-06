@@ -1,3 +1,7 @@
+const settings     = require('./settings.json');
+const https        = require('https');
+https.globalAgent.maxSockets = settings.general.maxSockets;
+
 const fs           = require('fs');
 const cheerio      = require('cheerio');
 const Promise      = require('bluebird');
@@ -5,9 +9,6 @@ const moment       = require('moment');
 const _            = require('lodash');
 const request      = require('request');
 const EventEmitter = require('events').EventEmitter;
-const settings     = require('./settings.json');
-const https        = require('https');
-https.globalAgent.maxSockets = settings.general.maxSockets;
 
 let store = {};
 let ee    = new EventEmitter();
