@@ -40,12 +40,16 @@ let helpers = {
     Tweet.getAllDeleted(null).then(data => {
       let total = data.total;
       let totalPages = Math.ceil(total/25);
+      utils.set('totalPages', totalPages);
 
       let count = 0;
       async.whilst(
-        function() { return count < totalPages; },
+        function() { return count < Math.min(totalPages, settings.cache.index); },
         function(innercb) {
-          getPage(++count, innercb.bind(this, null, count));
+          getPage(++count, pageInfo => {
+            cache.index[pageInfo.page] = {tweets: pageInfo.tweets, totalTweets: pageInfo.totalTweets};
+            innercb(null, count);
+          });
         },
         function (err, n) {
           utils.set('cache', cache);
@@ -53,29 +57,6 @@ let helpers = {
         }
       );
     });
-
-    function getPage(page, cb) {
-      let tweets, totalTweets;
-      async.parallel([
-        cb => Tweet.getAllDeleted((page*25)-25).then(data => {
-          tweets = data.tweets;
-          totalTweets = data.total;
-          cb();
-        })
-      ], () => {
-        let tweetData = [];
-
-        async.eachLimit(tweets, 1, (tweet, cb) => {
-          Tweet.getTweetTxt(tweet.tweetid).then(data => {
-            tweetData.push(data);
-            cb();
-          });
-        }, () => {
-          cache.index[page] = {tweets: tweetData, totalTweets};
-          cb();
-        });
-      });
-    }
   },
   updateStats(cb=()=>{}) {
     let start = new Date().getTime();
@@ -288,8 +269,31 @@ let helpers = {
       utils.set('statsStream', cache);
       cb();
     });
-  }
+  },
+  getPage
 };
+
+function getPage(page, cb) {
+  let tweets, totalTweets;
+  async.parallel([
+    cb => Tweet.getAllDeleted((page*25)-25).then(data => {
+      tweets = data.tweets;
+      totalTweets = data.total;
+      cb();
+    })
+  ], () => {
+    let tweetData = [];
+
+    async.eachLimit(tweets, 1, (tweet, cb) => {
+      Tweet.getTweetTxt(tweet.tweetid).then(data => {
+        tweetData.push(data);
+        cb();
+      });
+    }, () => {
+      cb({page, tweets: tweetData, totalTweets});
+    });
+  });
+}
 
 // Spawners //
 function spawner(mode) {

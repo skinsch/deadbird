@@ -35,9 +35,15 @@ function main() {
   router.get('/', (req, res, next) => {
     let page = Number((req.query.page || 1));
     if (page < 1) page = 1;
-    if (utils.get('cache').index[page] === undefined) return res.redirect('/');
-
-    res.render('stream', _.merge(utils.get('cache').index[page], {title: "Home", streamUpdate: utils.get('streamUpdate')}, defaultVars));
+    if (page <= utils.get('totalPages') && page > settings.cache.index) {
+      helpers.getPage(page, pageInfo => {
+        res.render('stream', _.merge({page: pageInfo.page, tweets: pageInfo.tweets, totalTweets: pageInfo.totalTweets}, {title: "Home", streamUpdate: utils.get('streamUpdate')}, defaultVars));
+      });
+    } else if (utils.get('cache').index[page] === undefined) {
+      return res.redirect('/');
+    } else {
+      res.render('stream', _.merge(utils.get('cache').index[page], {title: "Home", streamUpdate: utils.get('streamUpdate')}, defaultVars));
+    }
   });
 
   router.get('/leaderboards', (req, res, next) => {
