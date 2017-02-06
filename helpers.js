@@ -64,7 +64,7 @@ let helpers = {
     Handle.getAll().then(handles => {
       handles.unshift(null);
 
-      async.eachLimit(handles, 50, (handle, cb) => {
+      async.eachLimit(handles, 3, (handle, cb) => {
         getStats(handle ? handle.id : null).then(stat => {
           stats[handle ? handle.id : "all"] = stat;
           cb();
