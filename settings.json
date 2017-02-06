@@ -28,5 +28,8 @@
   "session": {
     "key": "Deadbird",
     "secret": "SUPERSEKRETMESSAGE123"
+  },
+  "cache": {
+    "index": 10
   }
 }
