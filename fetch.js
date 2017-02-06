@@ -18,7 +18,7 @@ const db     = require('./models/db');
 const Handle = require('./models/handle');
 const Tweet  = require('./models/tweet');
 
-let tweetids = [];
+let tweetids = {};
 let handles;
 var completed = 0;
 var fails = 0;
@@ -92,7 +92,7 @@ function getTweets(user, cb) {
     //data.pinned  = attribs.class.indexOf('user-pinned') !== -1;
     data.retweet = attribs['data-retweet-id'] !== undefined;
     data.tweetid = data.retweet ? attribs['data-retweet-id'] : attribs['data-tweet-id'];
-    if (data.tweetid in tweetids) {
+    if (tweetids[data.tweetid]) {
       return null;
     }
 
