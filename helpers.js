@@ -6,6 +6,15 @@ const schedule = require('node-schedule');
 const spawn    = require('child_process').spawn;
 const settings = utils.settings;
 
+let data = {
+  fetcher:   {percent: 0},
+  refetcher: {percent: 0},
+  checker:   {percent: 0},
+  unchecker: {percent: 0},
+  template:  {percent: 0}
+};
+utils.set('data', data);
+
 const db     = require('./models/db');
 const Tweet  = require('./models/tweet');
 const Handle = require('./models/handle');
@@ -118,14 +127,6 @@ let helpers = {
     }
   },
   initStats() {
-    let data = {
-      fetcher: {percent: 0},
-      refetcher: {percent: 0},
-      checker: {percent: 0},
-      unchecker: {percent: 0},
-      template: {percent: 0}
-    };
-
     let cacheData = {
       stats: {status: 'pre'},
       index: {status: 'pre'},
@@ -133,8 +134,6 @@ let helpers = {
     };
 
     let cacheStatus, cacheItem = 'stats';
-
-    utils.set('data', data);
 
     async.series([
       // Start template -> checker
@@ -294,7 +293,6 @@ let helpers = {
 
 // Spawners //
 function spawner(mode) {
-  let data = utils.get('data');
   let scripts = {fetcher: 'fetch', refetcher: 'refetcher', unchecker: 'unchecker', checker: 'check', template: 'getTemplate'};
 
   return new Promise((resolve, reject) => {
@@ -338,8 +336,6 @@ function spawner(mode) {
 }
 
 function checkerLoop() {
-  let data = utils.get('data');
-
   spawner('checker').then(fail => {
     if (fail) checkerLoop();
     else {
@@ -352,8 +348,6 @@ function checkerLoop() {
 }
 
 function uncheckerLoop() {
-  let data = utils.get('data');
-
   spawner('unchecker').then(fail => {
     if (fail) uncheckerLoop();
     else {
@@ -364,8 +358,6 @@ function uncheckerLoop() {
 }
 
 function fetcherLoop() {
-  let data = utils.get('data');
-
   spawner('fetcher').then(fail => {
     if (fail) fetcherLoop();
     else {
@@ -376,8 +368,6 @@ function fetcherLoop() {
 }
 
 function refetcherLoop() {
-  let data = utils.get('data');
-
   spawner('refetcher').then(fail => {
     if (fail) refetcherLoop();
     else {
@@ -388,8 +378,6 @@ function refetcherLoop() {
 }
 
 function templateLoop() {
-  let data = utils.get('data');
-
   spawner('template').then(fail => {
     if (fail) templateLoop();
     else {
