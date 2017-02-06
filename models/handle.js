@@ -59,8 +59,10 @@ module.exports = {
     });
   },
   incVal(key, value, handle) {
-    value = Number(value);
     return new Promise((resolve, reject) => {
+      value = Number(value);
+      if (value === 0) return resolve(null);
+
       this.getVal(key, handle).then(previous => {
         previous += value;
         db.query('UPDATE `handles` SET ? WHERE ?', [{[key]: previous}, {handle}], (err, data) => {
