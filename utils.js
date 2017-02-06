@@ -6,6 +6,8 @@ const _            = require('lodash');
 const request      = require('request');
 const EventEmitter = require('events').EventEmitter;
 const settings     = require('./settings.json');
+const https        = require('https');
+https.globalAgent.maxSockets = settings.general.maxSockets;
 
 let store = {};
 let ee    = new EventEmitter();
