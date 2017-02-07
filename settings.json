@@ -7,7 +7,7 @@
     "timeout": 1500,
     "maxSockets": 150,
     "retrieversEnabled": true,
-    "checkerDaysBack": 7,
+    "checkerDaysBack": 28,
     "fetcherRestInterval": 0,
     "refetcherRestInterval": 300,
     "checkerRestInterval": 900,
