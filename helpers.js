@@ -2,10 +2,10 @@ require('colors');
 const async    = require('async');
 const moment   = require('moment');
 const utils    = require('./utils')
-const schedule = require('node-schedule');
 const spawn    = require('child_process').spawn;
 const settings = utils.settings;
 
+let scheduler;
 let data = {
   fetcher:   {percent: 0},
   refetcher: {percent: 0},
@@ -158,11 +158,21 @@ let helpers = {
             liveStatusUpdate(data, item);
             console.log();
 
-            setTimeout(fetcherLoop,   settings.general.fetcherRestInterval * 1000);
-            setTimeout(refetcherLoop, settings.general.refetcherRestInterval * 1000);
-            setTimeout(templateLoop,  settings.general.templateRestInterval * 1000);
-            setTimeout(uncheckerLoop, settings.general.fetcherRestInterval * 1000);
-            setTimeout(checkerLoop,   settings.general.checkerRestInterval * 1000);
+            data['fetcher'].nextCheck   = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
+            data['refetcher'].nextCheck = new Date().getTime() + settings.general.refetcherRestInterval * 1000;
+            data['template'].nextCheck  = new Date().getTime() + settings.general.templateRestInterval * 1000;
+            data['unchecker'].nextCheck = new Date().getTime() + settings.general.uncheckRestInterval * 1000;
+            data['checker'].nextCheck   = new Date().getTime() + settings.general.checkerRestInterval * 1000;
+
+            scheduler = setInterval(() => {
+              for (item in data) {
+                if (new Date().getTime() >= data[item].nextCheck) {
+                  data[item].nextCheck = +Infinity;  // Reset so it doesn't keep executing loop
+                  eval(`${item}Loop()`);
+                }
+              }
+            }, 1000);
+
             cb();
           });
         } else {
@@ -182,7 +192,6 @@ let helpers = {
         cacheData.stats.status = 'inProgress';
         helpers.updateStats(() => {
           cacheData.stats.status = 'done';
-          schedule.scheduleJob('0 */15 * * * *', helpers.updateStats);
           cb();
         });
       },
@@ -343,10 +352,16 @@ function checkerLoop() {
   spawner('checker').then(fail => {
     if (fail) checkerLoop();
     else {
-      data['checker'].nextCheck = new Date().getTime() + settings.general.checkerRestInterval * 1000;
+      // Reindex after checking
       utils.emit("indexCacherStart");
-      utils.emit("statsStreamCacherStart");
-      setTimeout(checkerLoop, settings.general.checkerRestInterval * 1000);
+      utils.once("indexCacherDone", () => {
+        utils.emit("statsStreamCacherStart");
+      });
+      utils.once("statsStreamCacherDone", () => {
+        helpers.updateStats(() => {
+          data['checker'].nextCheck = new Date().getTime() + settings.general.checkerRestInterval * 1000;
+        });
+      });
     }
   });
 }
@@ -354,40 +369,28 @@ function checkerLoop() {
 function uncheckerLoop() {
   spawner('unchecker').then(fail => {
     if (fail) uncheckerLoop();
-    else {
-      data['unchecker'].nextCheck = new Date().getTime() + settings.general.uncheckerRestInterval * 1000;
-      setTimeout(uncheckerLoop, settings.general.uncheckerRestInterval * 1000);
-    }
+    else data['unchecker'].nextCheck = new Date().getTime() + settings.general.uncheckRestInterval * 1000;
   });
 }
 
 function fetcherLoop() {
   spawner('fetcher').then(fail => {
     if (fail) fetcherLoop();
-    else {
-      data['fetcher'].nextCheck = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
-      setTimeout(fetcherLoop, settings.general.fetcherRestInterval * 1000);
-    }
+    else data['fetcher'].nextCheck = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
   });
 }
 
 function refetcherLoop() {
   spawner('refetcher').then(fail => {
     if (fail) refetcherLoop();
-    else {
-      data['refetcher'].nextCheck = new Date().getTime() + settings.general.refetcherRestInterval * 1000;
-      setTimeout(refetcherLoop, settings.general.refetcherRestInterval * 1000);
-    }
+    else data['refetcher'].nextCheck = new Date().getTime() + settings.general.refetcherRestInterval * 1000;
   });
 }
 
 function templateLoop() {
   spawner('template').then(fail => {
     if (fail) templateLoop();
-    else {
-      data['template'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
-      setTimeout(templateLoop, settings.general.templateRestInterval * 1000);
-    }
+    else data['template'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
   });
 }
 
