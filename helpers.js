@@ -158,21 +158,6 @@ let helpers = {
             liveStatusUpdate(data, item);
             console.log();
 
-            data['fetcher'].nextCheck   = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
-            data['refetcher'].nextCheck = new Date().getTime() + settings.general.refetcherRestInterval * 1000;
-            data['template'].nextCheck  = new Date().getTime() + settings.general.templateRestInterval * 1000;
-            data['unchecker'].nextCheck = new Date().getTime() + settings.general.uncheckRestInterval * 1000;
-            data['checker'].nextCheck   = new Date().getTime() + settings.general.checkerRestInterval * 1000;
-
-            scheduler = setInterval(() => {
-              for (item in data) {
-                if (new Date().getTime() >= data[item].nextCheck) {
-                  data[item].nextCheck = +Infinity;  // Reset so it doesn't keep executing loop
-                  eval(`${item}Loop()`);
-                }
-              }
-            }, 1000);
-
             cb();
           });
         } else {
@@ -221,6 +206,21 @@ let helpers = {
       clearInterval(cacheStatus);
       cacheStatusUpdate(cacheData, cacheItem);
       console.log();
+
+      data['fetcher'].nextCheck   = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
+      data['refetcher'].nextCheck = new Date().getTime() + settings.general.refetcherRestInterval * 1000;
+      data['template'].nextCheck  = new Date().getTime() + settings.general.templateRestInterval * 1000;
+      data['unchecker'].nextCheck = new Date().getTime() + settings.general.uncheckRestInterval * 1000;
+      data['checker'].nextCheck   = new Date().getTime() + settings.general.checkerRestInterval * 1000;
+
+      scheduler = setInterval(() => {
+        for (item in data) {
+          if (new Date().getTime() >= data[item].nextCheck) {
+            data[item].nextCheck = +Infinity;  // Reset so it doesn't keep executing loop
+            eval(`${item}Loop()`);
+          }
+        }
+      }, 1000);
 
       utils.emit('initStatsDone');
     });
