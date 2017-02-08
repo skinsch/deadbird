@@ -10,7 +10,6 @@ const compress     = require('compression');
 const debug        = require('debug')('Deadbird:server');
 const http         = require('http');
 const schedule     = require('node-schedule');
-const session      = require('express-session');
 
 const utils    = require('./utils')
 const settings = utils.settings;
@@ -18,6 +17,10 @@ const settings = utils.settings;
 const io = require('socket.io')(settings.general.socket);
 require('./socket')(io);
 require('./events');
+
+// Redis Session Store
+const session      = require('express-session');
+const redisStore   = require('connect-redis')(session);
 
 const app    = express();
 const server = http.createServer(app);
@@ -34,13 +37,15 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session
+
+// Session store
 app.use(cookieParser('keyboard cat'));
 app.use(session({
   key: settings.session.key,
+  store: new redisStore(),
   secret: settings.session.secret,
   cookie: {
-    path: '/',
+    path: '/'
   },
   resave: false,
   saveUninitialized: false
@@ -50,7 +55,7 @@ app.use(flash());
 app.use('*', (req, res, next) => {
   if (req.originalUrl.match('pbs.twimg.com')!== null) return res.redirect(req.originalUrl.slice(1));
 
-  req.session['originalUrl'] = req.originalUrl;
+  req.session.originalUrl = req.originalUrl;
 
   let info    = req.flash('info');
   let warning = req.flash('warning');
@@ -66,7 +71,7 @@ app.use('*', (req, res, next) => {
     messages = "";
   }
 
-  req.session['messages'] = messages;
+  req.session.messages = messages;
   utils.set('analytics', fs.readFileSync('./views/snippets/googleAnalytics.ejs', 'utf8'));
   next();
 });
