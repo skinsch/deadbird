@@ -50,7 +50,7 @@ app.use(flash());
 app.use('*', (req, res, next) => {
   if (req.originalUrl.match('pbs.twimg.com')!== null) return res.redirect(req.originalUrl.slice(1));
 
-  utils.set('originalUrl', req.originalUrl);
+  req.session['originalUrl'] = req.originalUrl;
 
   let info    = req.flash('info');
   let warning = req.flash('warning');
@@ -66,7 +66,7 @@ app.use('*', (req, res, next) => {
     messages = "";
   }
 
-  utils.set('messages', messages);
+  req.session['messages'] = messages;
   utils.set('analytics', fs.readFileSync('./views/snippets/googleAnalytics.ejs', 'utf8'));
   next();
 });

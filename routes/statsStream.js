@@ -12,9 +12,9 @@ let defaultVars = {};
 
 router.all('*', (req, res, next) => {
   defaultVars = {
-    originalUrl:  utils.get('originalUrl'),
+    originalUrl:  req.session.originalUrl,
     dates:        utils.get('dates'),
-    messages:     utils.get('messages'),
+    messages:     req.session.messages,
     autocomplete: utils.get('autocomplete'),
     statUpdate:   utils.get('statUpdate'),
     basehref:     settings.general.basehref,
