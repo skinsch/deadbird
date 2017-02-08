@@ -113,7 +113,7 @@ module.exports = {
           return cb(false);
         }
 
-        $ = cheerio.load(body, {
+        let $ = cheerio.load(body, {
           normalizeWhitespace: true
         });
 

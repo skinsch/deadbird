@@ -61,7 +61,7 @@ module.exports = {
                 cb('bad');
               });
             } else {
-              $ = cheerio.load(body, {
+              let $ = cheerio.load(body, {
                 normalizeWhitespace: true
               });
 
@@ -109,7 +109,7 @@ module.exports = {
               return cb('fail');
             }
 
-            $ = cheerio.load(body, {
+            let $ = cheerio.load(body, {
               normalizeWhitespace: true
             });
 
@@ -342,7 +342,7 @@ module.exports = {
         if (err) return reject(err);
 
         if (tweet.tweet === undefined) return reject("TWEET_NOT_EXIST");
-        $ = cheerio.load(template.template);
+        let $ = cheerio.load(template.template);
         $('.PermalinkOverlay').css('display', 'block');
         $('.PermalinkOverlay-modal').prepend(tweet.tweet).html();
 
@@ -386,7 +386,7 @@ module.exports = {
         let htmlTweets = "";
         let totalPages = Math.ceil(handleRes.deleted/25);
         if (totalPages === 0) totalPages = 1;
-        $ = cheerio.load(template.template);
+        let $ = cheerio.load(template.template);
         $('#permalink-overlay').remove();
         $('.PermalinkProfile-overlay').remove();
 
