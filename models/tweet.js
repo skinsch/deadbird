@@ -25,11 +25,11 @@ module.exports = {
       delete data.timelineTweet;
 
       // If date of tweet is less than a day old, perform refetches else skip them
-      if (new Date().getTime() - new Date(data.date*1000).getTime() > 3600000) {
-        data.checkDate = moment(new Date().getTime() + 621920000000).format("YYYY-MM-DD HH:mm:ss");
+      if (Date.now() - new Date(data.date*1000).getTime() > 3600000) {
+        data.checkDate = moment(Date.now() + 621920000000).format("YYYY-MM-DD HH:mm:ss");
       } else {
         // next check in 1 minute initially
-        data.checkDate = moment(new Date().getTime() + 60000).format("YYYY-MM-DD HH:mm:ss");
+        data.checkDate = moment(Date.now() + 60000).format("YYYY-MM-DD HH:mm:ss");
       }
 
       data.date = moment(new Date(data.date*1000).getTime()).format("YYYY-MM-DD HH:mm:ss");
@@ -125,7 +125,7 @@ module.exports = {
         if (!err) {
           this.update({
             checking: 0,
-            checkDate: moment(new Date().getTime() + nextChecks[data.checks]*1000).format("YYYY-MM-DD HH:mm:ss"), checks: data.checks + 1
+            checkDate: moment(Date.now() + nextChecks[data.checks]*1000).format("YYYY-MM-DD HH:mm:ss"), checks: data.checks + 1
           }, data.id).then(() => {
             resolve(data);
           });

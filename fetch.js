@@ -23,7 +23,7 @@ let handles;
 var completed = 0;
 var fails = 0;
 var totalNewTweets = 0;
-var lastSuccess = new Date().getTime();
+var lastSuccess = Date.now();
 var breaks = 0;
 
 // Pause queue and resume once all handles are pushed
@@ -123,7 +123,7 @@ function fetchTweets(user, cb) {
     Tweet.add(tweet, user).then(result => {
       if (result === true) {
         newTweets++;
-        lastSuccess = new Date().getTime();
+        lastSuccess = Date.now();
 
       // Tweet appears to have been deleted at just the right moment...no action taken
       } else if (result === 'gone') {
@@ -177,7 +177,7 @@ function fetchTweets(user, cb) {
 
 setInterval(() => {
   // If more than 10 seconds have passed since last success
-  if (new Date().getTime() - lastSuccess > 10000) {
+  if (Date.now() - lastSuccess > 10000) {
 
     // More than 3 breaks
     if (++breaks === 3) {
@@ -186,7 +186,7 @@ setInterval(() => {
 
     // Take a 5 second break
     } else {
-      lastSuccess = new Date().getTime() + 5000;
+      lastSuccess = Date.now() + 5000;
       q.pause();
       setTimeout(() => {
         q.resume();

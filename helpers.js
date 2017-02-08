@@ -59,7 +59,7 @@ let helpers = {
     });
   },
   updateStats(cb=()=>{}) {
-    let start = new Date().getTime();
+    let start = Date.now();
     let stats = {};
     Handle.getAll().then(handles => {
       handles.unshift(null);
@@ -71,7 +71,7 @@ let helpers = {
         });
       }, () => {
         utils.set('stats', stats);
-        utils.set('statUpdate', new Date().getTime());
+        utils.set('statUpdate', Date.now());
         utils.set('dates', JSON.parse(JSON.stringify(stats['all'])).map((val, ind)=>moment(val.date.slice(0, 0-14)).format('Y/MM/DD')).reverse());
         cb();
       });
@@ -207,15 +207,15 @@ let helpers = {
       cacheStatusUpdate(cacheData, cacheItem);
       console.log();
 
-      data['fetcher'].nextCheck   = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
-      data['refetcher'].nextCheck = new Date().getTime() + settings.general.refetcherRestInterval * 1000;
-      data['template'].nextCheck  = new Date().getTime() + settings.general.templateRestInterval * 1000;
-      data['unchecker'].nextCheck = new Date().getTime() + settings.general.uncheckRestInterval * 1000;
-      data['checker'].nextCheck   = new Date().getTime() + settings.general.checkerRestInterval * 1000;
+      data['fetcher'].nextCheck   = Date.now() + settings.general.fetcherRestInterval * 1000;
+      data['refetcher'].nextCheck = Date.now() + settings.general.refetcherRestInterval * 1000;
+      data['template'].nextCheck  = Date.now() + settings.general.templateRestInterval * 1000;
+      data['unchecker'].nextCheck = Date.now() + settings.general.uncheckRestInterval * 1000;
+      data['checker'].nextCheck   = Date.now() + settings.general.checkerRestInterval * 1000;
 
       scheduler = setInterval(() => {
         for (item in data) {
-          if (new Date().getTime() >= data[item].nextCheck) {
+          if (Date.now() >= data[item].nextCheck) {
             data[item].nextCheck = +Infinity;  // Reset so it doesn't keep executing loop
             eval(`${item}Loop()`);
           }
@@ -359,7 +359,7 @@ function checkerLoop() {
       });
       utils.once("statsStreamCacherDone", () => {
         helpers.updateStats(() => {
-          data['checker'].nextCheck = new Date().getTime() + settings.general.checkerRestInterval * 1000;
+          data['checker'].nextCheck = Date.now() + settings.general.checkerRestInterval * 1000;
         });
       });
     }
@@ -369,28 +369,28 @@ function checkerLoop() {
 function uncheckerLoop() {
   spawner('unchecker').then(fail => {
     if (fail) uncheckerLoop();
-    else data['unchecker'].nextCheck = new Date().getTime() + settings.general.uncheckRestInterval * 1000;
+    else data['unchecker'].nextCheck = Date.now() + settings.general.uncheckRestInterval * 1000;
   });
 }
 
 function fetcherLoop() {
   spawner('fetcher').then(fail => {
     if (fail) fetcherLoop();
-    else data['fetcher'].nextCheck = new Date().getTime() + settings.general.fetcherRestInterval * 1000;
+    else data['fetcher'].nextCheck = Date.now() + settings.general.fetcherRestInterval * 1000;
   });
 }
 
 function refetcherLoop() {
   spawner('refetcher').then(fail => {
     if (fail) refetcherLoop();
-    else data['refetcher'].nextCheck = new Date().getTime() + settings.general.refetcherRestInterval * 1000;
+    else data['refetcher'].nextCheck = Date.now() + settings.general.refetcherRestInterval * 1000;
   });
 }
 
 function templateLoop() {
   spawner('template').then(fail => {
     if (fail) templateLoop();
-    else data['template'].nextCheck = new Date().getTime() + settings.general.templateRestInterval * 1000;
+    else data['template'].nextCheck = Date.now() + settings.general.templateRestInterval * 1000;
   });
 }
 

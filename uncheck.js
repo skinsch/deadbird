@@ -29,7 +29,7 @@ if (settings.general.rate === 0 || settings.general.timeout === 0) {
 }
 
 let total = 0, fails = 0, startTotal = 0, totalUndeletedTweets = 0;
-let start = new Date().getTime();
+let start = Date.now();
 let rate;
 
 let q = async.queue((tweet, cb) => {
@@ -38,7 +38,7 @@ let q = async.queue((tweet, cb) => {
       q.push(tweet);
       fails++;
     }
-    rate = total / ((new Date().getTime() - start)/1000);
+    rate = total / ((Date.now() - start)/1000);
     let raw = moment.duration((startTotal+fails - total)/rate*1000);
     let format = `${utils.pad(raw.minutes(), 2)}:${utils.pad(raw.seconds(), 2)}`;
 

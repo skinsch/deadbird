@@ -117,6 +117,6 @@ function updateDates() {
     }
   });
 
-  let lastUpdated = moment.duration(new Date().getTime() - Number($('streamUpdate').html())).minutes();
+  let lastUpdated = moment.duration(Date.now() - Number($('streamUpdate').html())).minutes();
   $('#streamUpdate').html(`Last updated ${lastUpdated === 0 ? "just now" : lastUpdated + " minutes ago"}`);
 };

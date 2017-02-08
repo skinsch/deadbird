@@ -29,9 +29,9 @@ if (settings.general.rate === 0 || settings.general.timeout === 0) {
 }
 
 let total = 0, fails = 0, startTotal = 0, totalDeletedTweets = 0;
-let start = new Date().getTime();
+let start = Date.now();
 let rate;
-var lastSuccess = new Date().getTime();
+var lastSuccess = Date.now();
 var breaks = 0;
 
 let q = async.queue((tweet, cb) => {
@@ -40,10 +40,10 @@ let q = async.queue((tweet, cb) => {
       q.push(tweet);
       fails++;
     } else {
-      lastSuccess = new Date().getTime();
+      lastSuccess = Date.now();
     }
 
-    rate = total / ((new Date().getTime() - start)/1000);
+    rate = total / ((Date.now() - start)/1000);
     let raw = moment.duration((startTotal+fails - total)/rate*1000);
     let format = `${utils.pad(raw.minutes(), 2)}:${utils.pad(raw.seconds(), 2)}`;
 
@@ -97,7 +97,7 @@ q.drain = () => {
 
 setInterval(() => {
   // If more than 10 seconds have passed since last success
-  if (new Date().getTime() - lastSuccess > 10000) {
+  if (Date.now() - lastSuccess > 10000) {
 
     // More than 3 breaks
     if (++breaks === 3) {
@@ -106,7 +106,7 @@ setInterval(() => {
 
     // Take a 5 second break
     } else {
-      lastSuccess = new Date().getTime() + 5000;
+      lastSuccess = Date.now() + 5000;
       q.pause();
       setTimeout(() => {
         q.resume();

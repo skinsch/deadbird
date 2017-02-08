@@ -4,7 +4,7 @@ const helpers = require('./helpers');
 // Recache index pages whenever checker finishes
 utils.on('indexCacherStart', () => {
   helpers.cacheIndex(() => {
-    utils.set('streamUpdate', new Date().getTime());
+    utils.set('streamUpdate', Date.now());
     utils.emit('indexCacherDone');
   });
 });

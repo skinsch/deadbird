@@ -122,14 +122,14 @@ function timeoutTest(outcb) {
 
 function benchmark(speed, timeout, cb) {
   let total = 0, fails = 0;
-  let start = new Date().getTime();
+  let start = Date.now();
   async.eachLimit(tweets, speed, (tweet, cb) => {
     utils.tweetExists(tweet.handle, tweet.tweetid, timeout, exists => {
       if (exists === "fail") {
         exists = true;
         fails++;
       }
-      rate = total / ((new Date().getTime() - start)/1000);
+      rate = total / ((Date.now() - start)/1000);
       let raw = moment.duration((tweets.length - total)/rate*1000);
       let format = `${utils.pad(raw.minutes(), 2)}:${utils.pad(raw.seconds(), 2)}`;
 

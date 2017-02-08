@@ -8,16 +8,16 @@ $(() => {
   socket.on('status', data => {
     data = JSON.parse(data);
     if (data.fetcher.nextCheck) {
-      data.fetcher.nextCheck = `${Math.floor((data.fetcher.nextCheck - new Date().getTime())/1000)} seconds`;
+      data.fetcher.nextCheck = `${Math.floor((data.fetcher.nextCheck - Date.now())/1000)} seconds`;
     }
     if (data.checker.nextCheck) {
-      data.checker.nextCheck = `${Math.floor((data.checker.nextCheck - new Date().getTime())/1000)} seconds`;
+      data.checker.nextCheck = `${Math.floor((data.checker.nextCheck - Date.now())/1000)} seconds`;
     }
     if (data.template.nextCheck) {
-      data.template.nextCheck = `${Math.floor((data.template.nextCheck - new Date().getTime())/1000)} seconds`;
+      data.template.nextCheck = `${Math.floor((data.template.nextCheck - Date.now())/1000)} seconds`;
     }
     if (data.refetcher.nextCheck) {
-      data.refetcher.nextCheck = `${Math.floor((data.refetcher.nextCheck - new Date().getTime())/1000)} seconds`;
+      data.refetcher.nextCheck = `${Math.floor((data.refetcher.nextCheck - Date.now())/1000)} seconds`;
     }
     $('#fetcherLog').val(JSON.stringify(data.fetcher, null, 1));
     $('#checkerLog').val(JSON.stringify(data.checker, null, 1));
@@ -31,7 +31,7 @@ $(() => {
       let statUpdate = $('statUpdate').html();
       let categories = stats.map((val, ind)=>moment(val.date.slice(0, 0-14)).format('Y/MM/DD')).reverse();
 
-      let ago = moment.duration((new Date().getTime() - Number(statUpdate))).minutes();
+      let ago = moment.duration((Date.now() - Number(statUpdate))).minutes();
       let chart = Highcharts.chart('container', {
         chart: {
           type: 'column'
