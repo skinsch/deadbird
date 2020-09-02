@@ -23,7 +23,7 @@
     "express-session": "^1.14.2",
     "lodash": "^4.17.2",
     "moment": "^2.15.2",
-    "morgan": "~1.7.0",
+    "morgan": "~1.10.0",
     "mysql": "^2.12.0",
     "node-schedule": "^1.2.0",
     "request": "^2.78.0",
