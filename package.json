@@ -17,7 +17,7 @@
     "connect-flash": "^0.1.1",
     "connect-redis": "^3.2.0",
     "cookie-parser": "~1.4.3",
-    "debug": "~2.2.0",
+    "debug": "~4.1.1",
     "ejs": "~2.5.2",
     "express": "~4.14.0",
     "express-session": "^1.14.2",
